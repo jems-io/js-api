@@ -1,0 +1,15 @@
+{
+  "name": "@jems/api-project",
+  "version": "1.0.0",
+  "main": "index.js",
+  "workspaces": [
+    "packages/*"
+  ],
+  "private": true,
+  "repository": "https://github.com/jems-io/api",
+  "author": "Francico Mercedes <franciscomerdot@gmail.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^14.6.0"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "name": "@jems/api",
+  "version": "1.0.0",
+  "repository": "https://github.com/jems-io/api",
+  "dependencies": {
+    "@jems/api-domain": "1.0.0"
+  }
+}

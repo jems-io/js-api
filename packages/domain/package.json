@@ -1,0 +1,6 @@
+{
+  "name": "@jems/api-domain",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/jems-io/api"
+}
