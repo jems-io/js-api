@@ -4,14 +4,19 @@ export class BuiltInApiRuntimeService implements ApiRuntimeService {
     useApi(api: Api): Promise<void> {
         throw new Error("Method not implemented.");
     }
-    useResourceActionDeliveryMechanism(api: ResourceActionDeliveryService): Promise<void> {
+    registerResourceActionDeliveryMechanism(api: ResourceActionDeliveryService): Promise<string> {
         throw new Error("Method not implemented.");
     }
-    useResourceEventDeliveryMechanism(api: ResourceEventDeliveryService): Promise<void> {
+    unregisterResourceActionDeliveryMechanism(registryId: string): Promise<void> {
+        throw new Error("Method not implemented.");
+    }
+    registerResourceEventDeliveryMechanism(api: ResourceEventDeliveryService): Promise<string> {
+        throw new Error("Method not implemented.");
+    }
+    unregisterResourceEventDeliveryMechanism(registryId: string): Promise<void> {
         throw new Error("Method not implemented.");
     }
     execute(): Promise<void> {
         throw new Error("Method not implemented.");
     }
-
 }

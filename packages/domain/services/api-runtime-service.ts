@@ -4,7 +4,9 @@ import { ResourceEventDeliveryService } from "./resource-event-delivery-servic";
 
 export interface ApiRuntimeService {
     useApi(api: Api): Promise<void>
-    useResourceActionDeliveryMechanism(api: ResourceActionDeliveryService): Promise<void>
-    useResourceEventDeliveryMechanism(api: ResourceEventDeliveryService): Promise<void>
+    registerResourceActionDeliveryMechanism(api: ResourceActionDeliveryService): Promise<string>
+    unregisterResourceActionDeliveryMechanism(registryId: string): Promise<void>
+    registerResourceEventDeliveryMechanism(api: ResourceEventDeliveryService): Promise<string>
+    unregisterResourceEventDeliveryMechanism(registryId: string): Promise<void>
     execute(): Promise<void>
 }
