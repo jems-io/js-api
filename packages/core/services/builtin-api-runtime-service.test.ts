@@ -61,24 +61,50 @@ describe('Api Runtime Services Test', () => {
   test('Execute Start Stop Action Delivery Service', async () => {
     const apiRuntimeService = new BuiltInApiRuntimeService(new MockResourceActionPipelineService(), new MockResourceEventPipelineService());
 
-    const deliveryService = new MockResourceActionDeliveryService()
+    const deliveryService = new MockResourceActionDeliveryService();
     await apiRuntimeService.useApi(MockApi);
     const registryId: string = await apiRuntimeService.registerResourceActionDeliveryMechanism(deliveryService);
     await apiRuntimeService.execute();
-    expect(deliveryService.isStarted).toBeTruthy()
+    expect(deliveryService.isStarted).toBeTruthy();
     await apiRuntimeService.unregisterResourceActionDeliveryMechanism(registryId);
-    expect(deliveryService.isStarted).toBeFalsy()
+    expect(deliveryService.isStarted).toBeFalsy();
   });
 
   test('Execute Start Stop Event Delivery Service', async () => {
     const apiRuntimeService = new BuiltInApiRuntimeService(new MockResourceActionPipelineService(), new MockResourceEventPipelineService());
 
-    const deliveryService = new MockResourceEventDeliveryService()
+    const deliveryService = new MockResourceEventDeliveryService();
     await apiRuntimeService.useApi(MockApi);
     const registryId: string = await apiRuntimeService.registerResourceEventDeliveryMechanism(deliveryService);
     await apiRuntimeService.execute();
-    expect(deliveryService.isStarted).toBeTruthy()
+    expect(deliveryService.isStarted).toBeTruthy();
     await apiRuntimeService.unregisterResourceEventDeliveryMechanism(registryId);
-    expect(deliveryService.isStarted).toBeFalsy()
+    expect(deliveryService.isStarted).toBeFalsy();
+  });
+
+
+  test('Unregister no register action', async () => {
+    const apiRuntimeService = new BuiltInApiRuntimeService(new MockResourceActionPipelineService(), new MockResourceEventPipelineService());
+
+    const deliveryService = new MockResourceActionDeliveryService();
+    await apiRuntimeService.useApi(MockApi);
+    await apiRuntimeService.registerResourceActionDeliveryMechanism(deliveryService);
+    await apiRuntimeService.execute();
+    expect(deliveryService.isStarted).toBeTruthy();
+    await apiRuntimeService.unregisterResourceActionDeliveryMechanism('test');
+    expect(deliveryService.isStarted).toBeTruthy();
+  });
+
+
+  test('Unregister no register event', async () => {
+    const apiRuntimeService = new BuiltInApiRuntimeService(new MockResourceActionPipelineService(), new MockResourceEventPipelineService());
+
+    const deliveryService = new MockResourceEventDeliveryService();
+    await apiRuntimeService.useApi(MockApi);
+    await apiRuntimeService.registerResourceEventDeliveryMechanism(deliveryService);
+    await apiRuntimeService.execute();
+    expect(deliveryService.isStarted).toBeTruthy();
+    await apiRuntimeService.unregisterResourceEventDeliveryMechanism('test');
+    expect(deliveryService.isStarted).toBeTruthy();
   });
 });

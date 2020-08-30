@@ -41,7 +41,7 @@ export class BuiltinResourceActionPipelineService implements ResourceActionPipel
       return undefined;
     }
     if (parts.length === 1) {
-      return resource?.actions?.filter(action => action.alias === parts[0])?.[0];
+      return resource.actions.filter(action => action.alias === parts[0])?.[0];
     }
     return this.getAction(parts.splice(1), this.findResource(parts[0], resource.resources));
   }

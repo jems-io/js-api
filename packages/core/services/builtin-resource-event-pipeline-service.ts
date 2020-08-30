@@ -1,18 +1,40 @@
 import {ResourceEventPipelineService} from '../../domain/services';
 import {ApiEvent} from '../../domain/models';
+import * as uuid from 'uuid';
 
 export class BuiltinResourceEventPipelineService implements ResourceEventPipelineService {
 
-  pipe(eventId: string, eventContent: ApiEvent): Promise<void> {
-    return Promise.resolve(undefined);
+  private subscriptions: { [eventId: string]: { [subscriberId: string]: (event: ApiEvent) => Promise<void> } } = {};
+
+  async pipe(eventId: string, eventContent: ApiEvent): Promise<void> {
+    await Promise.all(Object.keys(this.subscriptions[eventId] || []).map(async (subscriptionId) => {
+        const handler = this.subscriptions[eventId][subscriptionId];
+        await handler(eventContent);
+      },
+    ));
+    return Promise.resolve();
   }
 
-  subscribeListener(eventId: string, handler: (event: ApiEvent) => Promise<void>): Promise<string> {
-    return Promise.resolve('');
+  async subscribeListener(eventId: string, handler: (event: ApiEvent) => Promise<void>): Promise<string> {
+    const subscriptionId = uuid.v4();
+    if (!this.subscriptions[eventId]) {
+      this.subscriptions[eventId] = {};
+    }
+    this.subscriptions[eventId][subscriptionId] = handler;
+    return Promise.resolve(`${eventId}/${subscriptionId}`);
   }
 
-  unsubscribeListener(subscriptionId: string): Promise<void> {
-    return Promise.resolve(undefined);
+  async unsubscribeListener(subscriptionId: string): Promise<void> {
+    const eventSubscription = subscriptionId.split('/');
+    if (eventSubscription.length !== 2) {
+      throw Error('Invalid subscription Id');
+    }
+    const event = this.subscriptions[eventSubscription[0]];
+    if (!event || !event[eventSubscription[1]]) {
+      throw Error('Subscription Id is not subscribed');
+    }
+    delete this.subscriptions[eventSubscription[0]][eventSubscription[1]];
+    return Promise.resolve();
   }
 
 }

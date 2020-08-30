@@ -24,13 +24,23 @@ describe('Resource Action Pipeline Service Test', () => {
       service.pipe('', MockApiRequest),
     ).rejects.toThrowError('Action Id must be defined');
   });
-  test('Action with id was not found', async () => {
+  test('Action with id was not found on resource', async () => {
     const service = new BuiltinResourceActionPipelineService();
 
     service.useApi(MockApi);
     await expect(
       service.pipe('${actionId}', MockApiRequest),
     ).rejects.toThrowError('Action with id ${actionId} was not found');
+  });
+
+  test('Action with id was not found', async () => {
+    const service = new BuiltinResourceActionPipelineService();
+
+    service.useApi(MockApi);
+    const actionId = 'projects/vaults/update_vault';
+    await expect(
+      service.pipe(actionId, MockApiRequest),
+    ).rejects.toThrowError(`Action with id ${actionId} was not found`);
   });
 
   test('Action with id was not found', async () => {
