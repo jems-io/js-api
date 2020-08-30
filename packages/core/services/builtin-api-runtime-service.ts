@@ -100,5 +100,4 @@ export class BuiltInApiRuntimeService implements ApiRuntimeService {
       resources: apiResource.resources?.map((resource: ApiResource) => this.toApiResourceProtected(resource, currentPath)) || [],
     };
   }
-
 }

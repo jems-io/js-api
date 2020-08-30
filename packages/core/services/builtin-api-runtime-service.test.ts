@@ -57,4 +57,28 @@ describe('Api Runtime Services Test', () => {
     await apiRuntimeService.useApi(MockApi);
     await apiRuntimeService.execute();
   });
+
+  test('Execute Start Stop Action Delivery Service', async () => {
+    const apiRuntimeService = new BuiltInApiRuntimeService(new MockResourceActionPipelineService(), new MockResourceEventPipelineService());
+
+    const deliveryService = new MockResourceActionDeliveryService()
+    await apiRuntimeService.useApi(MockApi);
+    const registryId: string = await apiRuntimeService.registerResourceActionDeliveryMechanism(deliveryService);
+    await apiRuntimeService.execute();
+    expect(deliveryService.isStarted).toBeTruthy()
+    await apiRuntimeService.unregisterResourceActionDeliveryMechanism(registryId);
+    expect(deliveryService.isStarted).toBeFalsy()
+  });
+
+  test('Execute Start Stop Event Delivery Service', async () => {
+    const apiRuntimeService = new BuiltInApiRuntimeService(new MockResourceActionPipelineService(), new MockResourceEventPipelineService());
+
+    const deliveryService = new MockResourceEventDeliveryService()
+    await apiRuntimeService.useApi(MockApi);
+    const registryId: string = await apiRuntimeService.registerResourceEventDeliveryMechanism(deliveryService);
+    await apiRuntimeService.execute();
+    expect(deliveryService.isStarted).toBeTruthy()
+    await apiRuntimeService.unregisterResourceEventDeliveryMechanism(registryId);
+    expect(deliveryService.isStarted).toBeFalsy()
+  });
 });
