@@ -30,7 +30,7 @@ export class BuiltinResourceActionPipelineService implements ResourceActionPipel
       throw Error(`Action with id ${actionId} was not found`);
     }
     request = await this.runMiddlewares(request, this.api.resourcesActionsMiddlewares);
-    request = await this.runAllMiddlewares(resourcesPath, request, firstResource);
+    request = await this.runResourcesMiddlewares(resourcesPath, request, firstResource);
 
     const response = await action.routine(request);
     return Promise.resolve(response);
@@ -54,13 +54,13 @@ export class BuiltinResourceActionPipelineService implements ResourceActionPipel
     return resources?.filter(resource => resource.alias === resourceAlias)?.[0];
   }
 
-  private async runAllMiddlewares(parts: string[], request: ApiRequest, resource?: ApiResource): Promise<ApiRequest> {
+  private async runResourcesMiddlewares(parts: string[], request: ApiRequest, resource?: ApiResource): Promise<ApiRequest> {
     request = await this.runMiddlewares(request, resource?.actionsMiddlewares);
     if (parts.length === 1) {
       const action = resource?.actions?.filter(action => action.alias === parts[0])?.[0];
       return this.runMiddlewares(request, action?.middlewares);
     }
-    return this.runAllMiddlewares(parts.splice(1), request, this.findResource(parts[0], resource?.resources));
+    return this.runResourcesMiddlewares(parts.splice(1), request, this.findResource(parts[0], resource?.resources));
   }
 
   private async runMiddlewares(request: ApiRequest, middlewares?: ApiResourceActionMiddleware[]): Promise<ApiRequest> {

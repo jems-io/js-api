@@ -75,8 +75,9 @@ export class BuiltInApiRuntimeService implements ApiRuntimeService {
   }
 
   private toApiProtected(api: Api): ApiProtected {
+    const {resourcesActionsMiddlewares, ...apiProtectedValues} = api
     return {
-      ...api,
+    ...apiProtectedValues,
       resources: api.resources.map((resource: ApiResource) => this.toApiResourceProtected(resource)),
     };
   }
@@ -95,7 +96,7 @@ export class BuiltInApiRuntimeService implements ApiRuntimeService {
       })),
       events: apiResource.events.map((event: ApiResourceEvent) => ({
         ...event,
-        id: '',
+        id: `${currentPath}/${event.alias}`,
       })),
       resources: apiResource.resources?.map((resource: ApiResource) => this.toApiResourceProtected(resource, currentPath)) || [],
     };
