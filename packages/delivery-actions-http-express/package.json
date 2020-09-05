@@ -1,5 +1,14 @@
 {
   "name": "@jems/api-delivery-actions-http-express",
   "version": "1.0.0",
-  "repository": "https://github.com/jems-io/api"
+  "repository": "https://github.com/jems-io/api",
+  "dependencies": {
+    "@jems/api-domain": "1.0.0",
+    "express": "^4.17.1",
+    "uuid": "^8.3.0"
+  },
+  "devDependencies": {
+    "typescript": "^4.0.2",
+    "@types/express": "^4.17.8"
+  }
 }
