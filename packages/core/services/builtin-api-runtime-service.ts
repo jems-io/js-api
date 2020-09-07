@@ -68,21 +68,21 @@ export class BuiltInApiRuntimeService implements ApiRuntimeService {
 
   private toApiRuntimeContext(api: Api): ApiRuntimeContext {
     return {
-      api: this.toApiProtected(api),
+      api: BuiltInApiRuntimeService.toApiProtected(api),
       resourceActionPipelineService: this.resourceActionPipelineService,
       resourceEventPipelineService: this.resourceEventPipelineService,
     };
   }
 
-  private toApiProtected(api: Api): ApiProtected {
+  static toApiProtected(api: Api): ApiProtected {
     const {resourcesActionsMiddlewares, ...apiProtectedValues} = api
     return {
     ...apiProtectedValues,
-      resources: api.resources.map((resource: ApiResource) => this.toApiResourceProtected(resource)),
+      resources: api.resources.map((resource: ApiResource) => BuiltInApiRuntimeService.toApiResourceProtected(resource)),
     };
   }
 
-  private toApiResourceProtected(apiResource: ApiResource, path: string = ''): ApiResourceProtected {
+  static toApiResourceProtected(apiResource: ApiResource, path: string = ''): ApiResourceProtected {
     if (path !== '') {
       path += '/';
     }
@@ -98,7 +98,7 @@ export class BuiltInApiRuntimeService implements ApiRuntimeService {
         ...event,
         id: `${currentPath}/${event.alias}`,
       })),
-      resources: apiResource.resources?.map((resource: ApiResource) => this.toApiResourceProtected(resource, currentPath)) || [],
+      resources: apiResource.resources?.map((resource: ApiResource) => BuiltInApiRuntimeService.toApiResourceProtected(resource, currentPath)) || [],
     };
   }
 }

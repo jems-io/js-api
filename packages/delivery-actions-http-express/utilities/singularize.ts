@@ -5,11 +5,11 @@ export const singularize = (word: string): string => {
   if (irregularRules[word]) {
     return irregularRules[word];
   }
-  rules.forEach(rule => {
+  for (let rule of rules) {
     if (rule[0].test(word)) {
       return word.replace(rule[0], rule[1]);
     }
-  });
+  }
   return word;
 };
 
