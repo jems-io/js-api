@@ -614,3 +614,44 @@ export const MockApiRealApi: Api = {
   ],
   resourcesActionsMiddlewares: [],
 };
+
+export const MockApiActionRepeated: Api = {
+
+  name: 'Mock Api',
+  version: '0.0.1',
+  description: undefined,
+  resources: [
+    {
+      alias: 'projects',
+      name: 'Projects',
+      actions: [],
+      actionsMiddlewares: [],
+      events: [],
+      resources: [
+        {
+          alias: 'persons',
+          name: 'Persons',
+          actions: [
+            {
+              alias: 'get_persons',
+              name: 'Get Persons',
+              type: 'query',
+              middlewares: [],
+              routine,
+            },
+            {
+              alias: 'get_persons',
+              name: 'Get Persons',
+              type: 'query',
+              middlewares: [],
+              routine,
+            },
+          ],
+          actionsMiddlewares: [],
+          events: [],
+        },
+      ],
+    },
+  ],
+  resourcesActionsMiddlewares: [],
+}

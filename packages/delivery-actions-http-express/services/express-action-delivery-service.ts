@@ -13,17 +13,21 @@ import {
 } from 'http-terminator';
 import * as core from 'express-serve-static-core';
 
-// TODO: Questions::
-// Why the api context protected has the event service??
-// Should this class only run multiple instance of APIs?
+const defaultValues = {
+  port: 3000,
+};
 
 export class ExpressActionDeliveryService implements ResourceActionDeliveryService {
   private expressApp?: core.Express;
   private apiRuntimeContext?: ApiRuntimeContext;
   private httpTerminator?: HttpTerminator;
   private hasActions = false;
+  private mapActions: { [actionPathAlias: string]: string } = {};
 
-  async start(apiRuntimeContext: ApiRuntimeContext): Promise<void> {
+  async start(apiRuntimeContext: ApiRuntimeContext, parameters?: { [param: string]: string }): Promise<void> {
+    if (this.expressApp) {
+      throw Error('Service is started');
+    }
     this.apiRuntimeContext = apiRuntimeContext;
     if (apiRuntimeContext.api.resources.length === 0) {
       throw Error('Should have a least one resource');
@@ -31,13 +35,14 @@ export class ExpressActionDeliveryService implements ResourceActionDeliveryServi
     this.expressApp = express();
     this.expressApp.use(express.json());
     this.hasActions = false;
+    this.mapActions = {};
     apiRuntimeContext.api.resources.forEach(resource => {
       this.startResource(resource);
     });
     if (!this.hasActions) {
       throw Error('Should have a least one action');
     }
-    const server = await this.expressApp?.listen(3000);
+    const server = await this.expressApp?.listen(parameters?.port || defaultValues.port);
     this.httpTerminator = createHttpTerminator({server});
     return Promise.resolve();
   }
@@ -71,6 +76,11 @@ export class ExpressActionDeliveryService implements ResourceActionDeliveryServi
   }
 
   private startAction(action: ApiResourceActionProtected, path: string, useActionAliasOnPath: boolean, resourceName: string) {
+    const actionUniqueId = `${path}/${action.alias}`;
+    if (this.mapActions[actionUniqueId]) {
+      throw Error(`Two actions cannot have the same alias on the same resource, action:${actionUniqueId}`);
+    }
+    this.mapActions[actionUniqueId] = actionUniqueId;
     this.hasActions = true;
     const paramActionId = `:${resourceName}Id`;
     const suffix = useActionAliasOnPath ? `/${action.alias}` : '';
@@ -95,7 +105,7 @@ export class ExpressActionDeliveryService implements ResourceActionDeliveryServi
         this.expressApp?.patch(`${currentPath}/${paramActionId}`, this.getResponseHandle(action.id, path));
         break;
       case 'execute':
-        this.expressApp?.get(`${path}/${paramActionId}/${action.alias}`, this.getResponseHandle(action.id, path));
+        this.expressApp?.post(`${path}/${paramActionId}/${action.alias}`, this.getResponseHandle(action.id, path));
         break;
     }
   }
@@ -127,6 +137,7 @@ export class ExpressActionDeliveryService implements ResourceActionDeliveryServi
       },
       parameters: {...JSON.parse(JSON.stringify(req.query)), ...req.params},
       payload: Buffer.from(JSON.stringify(req.body || {})),
+      context: this.apiRuntimeContext,
     };
   }
 

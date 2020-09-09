@@ -12,9 +12,17 @@ import {
 } from '@jems/api-domain';
 import * as uuid from 'uuid';
 
+interface ActionDeliveryServiceRegister {
+  [registerDeliveryServiceId: string]:
+    {
+      actionDeliveryService: ResourceActionDeliveryService,
+      parameters: { [paramName: string]: string }
+    }
+}
+
 export class BuiltInApiRuntimeService implements ApiRuntimeService {
   private api?: Api;
-  private actionDeliveryService: { [registerDeliveryServiceId: string]: ResourceActionDeliveryService } = {};
+  private actionDeliveryService: ActionDeliveryServiceRegister = {};
   private eventDeliveryService: { [registerDeliveryServiceId: string]: ResourceEventDeliveryService } = {};
 
   constructor(private resourceActionPipelineService: ResourceActionPipelineService,
@@ -26,14 +34,17 @@ export class BuiltInApiRuntimeService implements ApiRuntimeService {
     return Promise.resolve();
   }
 
-  registerResourceActionDeliveryMechanism(api: ResourceActionDeliveryService): Promise<string> {
+  registerResourceActionDeliveryMechanism(api: ResourceActionDeliveryService, parameters: { [paramName: string]: string } = {}): Promise<string> {
     const registryId = uuid.v4();
-    this.actionDeliveryService[registryId] = api;
+    this.actionDeliveryService[registryId] = {
+      actionDeliveryService: api,
+      parameters,
+    };
     return Promise.resolve(registryId);
   }
 
   async unregisterResourceActionDeliveryMechanism(registryId: string): Promise<void> {
-    await this.actionDeliveryService[registryId]?.stop();
+    await this.actionDeliveryService[registryId]?.actionDeliveryService.stop();
     delete this.actionDeliveryService[registryId];
   }
 
@@ -57,7 +68,7 @@ export class BuiltInApiRuntimeService implements ApiRuntimeService {
     await Promise.all(
       [
         ...Object.keys(this.actionDeliveryService).map(key => {
-          this.actionDeliveryService[key].start(apiRuntimeContext);
+          this.actionDeliveryService[key].actionDeliveryService.start(apiRuntimeContext, this.actionDeliveryService[key].parameters);
         }),
         ...Object.keys(this.eventDeliveryService).map(key => {
           this.eventDeliveryService[key].start(apiRuntimeContext);
@@ -75,9 +86,9 @@ export class BuiltInApiRuntimeService implements ApiRuntimeService {
   }
 
   static toApiProtected(api: Api): ApiProtected {
-    const {resourcesActionsMiddlewares, ...apiProtectedValues} = api
+    const {resourcesActionsMiddlewares, ...apiProtectedValues} = api;
     return {
-    ...apiProtectedValues,
+      ...apiProtectedValues,
       resources: api.resources.map((resource: ApiResource) => BuiltInApiRuntimeService.toApiResourceProtected(resource)),
     };
   }

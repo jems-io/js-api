@@ -1,5 +1,6 @@
 import {ExpressActionDeliveryService} from './express-action-delivery-service';
 import {
+  MockApiActionRepeated,
   MockApiError,
   MockApiRealApi,
   MockApiRuntimeContextWithoutActions,
@@ -167,7 +168,7 @@ describe('Express Action Delivery Service Test', () => {
     };
     await service.start(api);
     const res = await fetch('http://localhost:3000/projects/*/sync_project', {
-      method: 'GET',
+      method: 'POST',
       headers: {'Content-Type': 'application/json'},
     });
     const json = await res.json();
@@ -188,7 +189,7 @@ describe('Express Action Delivery Service Test', () => {
     };
     await service.start(api);
     const res = await fetch('http://localhost:3000/projects/123/persons/321/permissions/*/sync_permission', {
-      method: 'GET',
+      method: 'POST',
       headers: {'Content-Type': 'application/json'},
     });
     expect(
@@ -214,7 +215,10 @@ describe('Express Action Delivery Service Test', () => {
       resourceEventPipelineService: new MockResourceEventPipelineService(),
     };
     await service.start(api);
-    const res = await fetch('http://localhost:3000/projects/123/persons/321/permissions/*/sync_permission?errorCode=error');
+    const res = await fetch('http://localhost:3000/projects/123/persons/321/permissions/*/sync_permission?errorCode=error',
+      {
+        method: 'POST',
+      });
     expect(
       res.status,
     ).toBe(500);
@@ -234,6 +238,56 @@ describe('Express Action Delivery Service Test', () => {
     expect(
       res.status,
     ).toBe(500);
+    await service.stop();
+  });
+  test('Start start - error', async () => {
+    const service = new ExpressActionDeliveryService();
+    const resourceActionPipelineService = new BuiltinResourceActionPipelineService();
+    resourceActionPipelineService.useApi(MockApiError);
+    const api: ApiRuntimeContext = {
+      api: BuiltInApiRuntimeService.toApiProtected(MockApiError),
+      resourceActionPipelineService,
+      resourceEventPipelineService: new MockResourceEventPipelineService(),
+    };
+    await service.start(api);
+    await expect(
+      service.start(api),
+    ).rejects.toThrowError();
+    await service.stop();
+  });
+  test('Actions Repeated - error', async () => {
+    const service = new ExpressActionDeliveryService();
+    const resourceActionPipelineService = new BuiltinResourceActionPipelineService();
+    resourceActionPipelineService.useApi(MockApiActionRepeated);
+    const api: ApiRuntimeContext = {
+      api: BuiltInApiRuntimeService.toApiProtected(MockApiActionRepeated),
+      resourceActionPipelineService,
+      resourceEventPipelineService: new MockResourceEventPipelineService(),
+    };
+    await expect(
+      service.start(api),
+    ).rejects.toThrowError();
+  });
+
+  test('Execute Parameter Test - success', async () => {
+    const service = new ExpressActionDeliveryService();
+    const api: ApiRuntimeContext = {
+      api: BuiltInApiRuntimeService.toApiProtected(MockApiRealApi),
+      resourceActionPipelineService: actionPipelineService,
+      resourceEventPipelineService: new MockResourceEventPipelineService(),
+    };
+    await service.start(api,  {port: "8080"});
+    const res = await fetch('http://localhost:8080/projects/*/sync_project', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+    });
+    const json = await res.json();
+    expect(
+      res.status,
+    ).toBe(200);
+    expect(
+      json.request.parameters.projectId,
+    ).toBe('*');
     await service.stop();
   });
 });
