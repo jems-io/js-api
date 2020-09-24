@@ -34,6 +34,7 @@ export const MockApi: Api = {
                 return {
                   status: 'completed',
                   payload: Buffer.from(''),
+                  payloadType: 'json',
                 };
               },
             },
@@ -46,6 +47,7 @@ export const MockApi: Api = {
                 return {
                   status: 'completed',
                   payload: Buffer.from(''),
+                  payloadType: 'json',
                 };
               },
             },
@@ -101,6 +103,7 @@ export const getApiMockRunOneAction = (onRunAction: OnRunAction): Api => {
                   return {
                     status: 'completed',
                     payload: Buffer.from(''),
+                    payloadType: 'json',
                   };
                 },
               },
@@ -142,6 +145,7 @@ export const MockApiCrashOnFirstMiddleware: Api = {
             return {
               status: 'completed',
               payload: Buffer.from(''),
+              payloadType: 'json',
             };
           },
         },
@@ -188,6 +192,7 @@ export const MockApiCrashOnDeepMiddleware: Api = {
             return {
               status: 'completed',
               payload: Buffer.from(''),
+              payloadType: 'json',
             };
           },
         },
@@ -234,6 +239,7 @@ export const getApiMockRunOneActionWithMultipleResources = (onRunAction: OnRunAc
                   return {
                     status: 'completed',
                     payload: Buffer.from(''),
+                    payloadType: 'json',
                   };
                 },
               },
@@ -247,6 +253,7 @@ export const getApiMockRunOneActionWithMultipleResources = (onRunAction: OnRunAc
                   return {
                     status: 'completed',
                     payload: Buffer.from(''),
+                    payloadType: 'json',
                   };
                 },
               },
@@ -286,6 +293,7 @@ export const getApiMockRunOneActionWithMultipleResources = (onRunAction: OnRunAc
                   return {
                     status: 'completed',
                     payload: Buffer.from(''),
+                    payloadType: 'json',
                   };
                 },
               },
@@ -316,6 +324,7 @@ export const getApiMockRunOneActionWithMultipleResources = (onRunAction: OnRunAc
                   return {
                     status: 'completed',
                     payload: Buffer.from(''),
+                    payloadType: 'json',
                   };
                 },
               },
@@ -335,6 +344,7 @@ const routine = (request: ApiRequest): ApiResponse => {
     return {
       status: request.parameters.errorCode as ApiResponseStatus,
       payload: Buffer.from('{ "error": "Error processing the request"}'),
+      payloadType: 'json',
     };
   }
   const jsonPayload = request.payload.toString('utf8');
@@ -345,6 +355,7 @@ const routine = (request: ApiRequest): ApiResponse => {
   return {
     status: 'completed',
     payload: Buffer.from(`{"data": [], "request": ${JSON.stringify(res)}}`),
+    payloadType: 'json',
   };
 };
 
@@ -654,4 +665,38 @@ export const MockApiActionRepeated: Api = {
     },
   ],
   resourcesActionsMiddlewares: [],
+};
+
+
+export class MalformedRequestError extends Error {
+  constructor(message: string) {
+    super(message);
+  }
 }
+const routineMalformedRequestError = (request: ApiRequest): ApiResponse => {
+  throw new MalformedRequestError("Test Error MalformedRequestError")
+}
+
+export const MockApiCustomErrors: Api = {
+  name: 'Mock Api',
+  version: '0.0.1',
+  description: undefined,
+  resources: [
+    {
+      alias: 'errors',
+      name: 'Errors',
+      actions: [
+        {
+          alias: 'malformed_request_error',
+          name: 'malformed_request_error',
+          type: 'execute',
+          middlewares: [],
+          routine: routineMalformedRequestError,
+        },
+
+      ],
+      actionsMiddlewares: [],
+      events: [],
+    },
+  ],
+};

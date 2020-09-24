@@ -1,8 +1,8 @@
 import {
   ApiRequest,
   ApiResourceActionProtected,
-  ApiResourceProtected, ApiResponseStatus,
-  ApiRuntimeContext,
+  ApiResourceProtected, ApiResponse, ApiResponseStatus,
+  ApiRuntimeContext, PayloadType,
   ResourceActionDeliveryService,
 } from '@jems/api-domain';
 import express, {Request, Response} from 'express';
@@ -12,6 +12,7 @@ import {
   createHttpTerminator, HttpTerminator,
 } from 'http-terminator';
 import * as core from 'express-serve-static-core';
+import {MalformedRequestError} from '../../core/__mocks__/models';
 
 const defaultValues = {
   port: 3000,
@@ -23,8 +24,9 @@ export class ExpressActionDeliveryService implements ResourceActionDeliveryServi
   private httpTerminator?: HttpTerminator;
   private hasActions = false;
   private mapActions: { [actionPathAlias: string]: string } = {};
+  private parameters?: { [param: string]: any };
 
-  async start(apiRuntimeContext: ApiRuntimeContext, parameters?: { [param: string]: string }): Promise<void> {
+  async start(apiRuntimeContext: ApiRuntimeContext, parameters?: { [param: string]: any }): Promise<void> {
     if (this.expressApp) {
       throw Error('Service is started');
     }
@@ -35,6 +37,7 @@ export class ExpressActionDeliveryService implements ResourceActionDeliveryServi
     this.expressApp = express();
     this.expressApp.use(express.json());
     this.hasActions = false;
+    this.parameters = parameters;
     this.mapActions = {};
     apiRuntimeContext.api.resources.forEach(resource => {
       this.startResource(resource);
@@ -110,21 +113,47 @@ export class ExpressActionDeliveryService implements ResourceActionDeliveryServi
     }
   }
 
-  private getResponseHandle(actionId: string, path: string): any {
+  private getResponseHandle(actionId: string, path: string): (req: Request, res: Response) => Promise<void> {
     return async (req: Request, res: Response) => {
       try {
         const apiRequest = this.toApiReq(path, req);
         const response = await this.apiRuntimeContext?.resourceActionPipelineService?.pipe(actionId, apiRequest);
         if (response) {
-          const jsonResponse = response.payload.toString('utf8');
-          res.contentType('application/json');
-          res.status(this.toStatusCode(response.status)).send(jsonResponse);
+          res.contentType(this.toContentType(response.payloadType));
+          res.status(this.toStatusCode(response.status)).send(response.payload);
         }
       } catch (error) {
         console.error(error);
-        res.status(500).send({message: error.toString()});
+        res.status(this.mapErrorStatusCode(error)).send({message: error.toString()});
       }
     };
+  }
+
+  private mapErrorStatusCode(error: Error): number {
+    console.log('Error instance', error instanceof MalformedRequestError)
+    if (this.parameters?.httpStatusCodeErrorsMap) {
+      for (let statusCode of Object.keys(this.parameters?.httpStatusCodeErrorsMap)) {
+        for (let errorType of this.parameters?.httpStatusCodeErrorsMap[statusCode]) {
+          if (error instanceof errorType) {
+            return parseInt(statusCode) || 500;
+          }
+        }
+      }
+    }
+    return 500;
+  }
+
+  private toContentType(payloadType: PayloadType): string {
+    switch (payloadType) {
+      case 'json':
+        return 'application/json';
+      case 'xml':
+        return 'application/xml';
+      case 'text':
+        return 'text/plain';
+      case 'binary':
+        return 'application/octet-stream';
+    }
   }
 
   private toApiReq(path: string, req: Request): ApiRequest {

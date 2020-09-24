@@ -1,6 +1,6 @@
 import { ApiResourceActionMiddleware } from "./api-resource-action-middleware";
 import { ApiResourceActionType } from "./api-resource-action-type";
-import { ApiResponse } from "./api-respose";
+import { ApiResponse } from "./api-response";
 import { ApiRoutine } from "./api-routine";
 
 export interface ApiResourceAction {
