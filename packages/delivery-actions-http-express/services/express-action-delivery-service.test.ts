@@ -6,10 +6,10 @@ import {
   MockApiRuntimeContextWithoutActions,
   MockApiRuntimeContextWithoutResources,
   MockResourceEventPipelineService,
-} from '../../core/__mocks__';
-import {ApiRuntimeContext} from '../../domain/models';
-import {BuiltinResourceActionPipelineService, BuiltInApiRuntimeService} from '../../core/services';
+} from '../__mocks__';
+import {ApiRuntimeContext} from '@jems/api-domain';
 import fetch from 'node-fetch';
+import {BuiltInApiRuntimeService, BuiltinResourceActionPipelineService} from '../../core/services';
 
 const actionPipelineService = new BuiltinResourceActionPipelineService();
 actionPipelineService.useApi(MockApiRealApi);

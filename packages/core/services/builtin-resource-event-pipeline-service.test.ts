@@ -1,6 +1,5 @@
 import {BuiltinResourceEventPipelineService} from './builtin-resource-event-pipeline-service';
-import {MockApiEvent} from '../__mocks__/models/mock-api-event';
-import exp from 'constants';
+import {MockApiEvent} from '../__mocks__';
 
 describe('Resource Event Pipeline Services Test', () => {
   test('Invalid subscriber id', async () => {

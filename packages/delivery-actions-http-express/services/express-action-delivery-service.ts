@@ -1,7 +1,7 @@
 import {
   ApiRequest,
   ApiResourceActionProtected,
-  ApiResourceProtected, ApiResponse, ApiResponseStatus,
+  ApiResourceProtected, ApiResponseStatus,
   ApiRuntimeContext, PayloadType,
   ResourceActionDeliveryService,
 } from '@jems/api-domain';
@@ -12,7 +12,6 @@ import {
   createHttpTerminator, HttpTerminator,
 } from 'http-terminator';
 import * as core from 'express-serve-static-core';
-import {MalformedRequestError} from '../../core/__mocks__/models';
 
 const defaultValues = {
   port: 3000,
@@ -130,7 +129,6 @@ export class ExpressActionDeliveryService implements ResourceActionDeliveryServi
   }
 
   private mapErrorStatusCode(error: Error): number {
-    console.log('Error instance', error instanceof MalformedRequestError)
     if (this.parameters?.httpStatusCodeErrorsMap) {
       for (let statusCode of Object.keys(this.parameters?.httpStatusCodeErrorsMap)) {
         for (let errorType of this.parameters?.httpStatusCodeErrorsMap[statusCode]) {

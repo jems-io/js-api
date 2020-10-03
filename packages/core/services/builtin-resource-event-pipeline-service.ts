@@ -1,5 +1,4 @@
-import {ResourceEventPipelineService} from '../../domain/services';
-import {ApiEvent} from '../../domain/models';
+import {ResourceEventPipelineService, ApiEvent} from '@jems/api-domain';
 import * as uuid from 'uuid';
 
 export class BuiltinResourceEventPipelineService implements ResourceEventPipelineService {

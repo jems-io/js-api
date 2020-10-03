@@ -1,12 +1,12 @@
-import {ResourceActionPipelineService} from '../../domain/services';
 import {
+  ResourceActionPipelineService,
   Api,
   ApiRequest,
   ApiResource,
   ApiResourceAction,
   ApiResourceActionMiddleware,
   ApiResponse,
-} from '../../domain/models';
+} from '@jems/api-domain';
 
 export class BuiltinResourceActionPipelineService implements ResourceActionPipelineService {
   private api?: Api;
