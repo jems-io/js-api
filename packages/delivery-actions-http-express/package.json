@@ -8,6 +8,10 @@
   "publishConfig": {
     "access": "public"
   },
+  "scripts": {
+    "build": "tsc index.ts --outDir dist --declaration --esModuleInterop",
+    "publish": "npm publish"
+  },
   "dependencies": {
     "@jems/api-domain": "0.1.1",
     "express": "4.17.1",
@@ -20,5 +24,8 @@
     "@types/http-terminator": "2.0.1",
     "@types/node-fetch": "2.5.7",
     "node-fetch": "2.6.1"
-  }
+  },
+  "files": [
+    "dist"
+  ]
 }

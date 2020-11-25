@@ -7,5 +7,12 @@
   "license": "MIT",
   "publishConfig": {
     "access": "public"
-  }
+  },
+  "scripts": {
+    "build": "tsc index.ts --outDir dist --declaration",
+    "publish": "npm publish"
+  },
+  "files": [
+    "dist"
+  ]
 }

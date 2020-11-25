@@ -8,11 +8,18 @@
   "publishConfig": {
     "access": "public"
   },
+  "scripts": {
+    "build": "tsc index.ts --outDir dist --declaration",
+    "publish": "npm publish"
+  },
   "dependencies": {
     "@jems/api-domain": "0.1.1",
     "uuid": "8.3.0"
   },
   "devDependencies": {
     "@types/uuid": "8.3.0"
-  }
+  },
+  "files": [
+    "dist"
+  ]
 }
