@@ -43,8 +43,8 @@ describe('Express Action Delivery Service Test', () => {
     await service.start(api);
     await service.stop();
     await expect(
-      fetch('http://localhost:3000/projects'),
-    ).rejects.toThrowError('request to http://localhost:3000/projects failed, reason: connect ECONNREFUSED 127.0.0.1:3000');
+      fetch('http://localhost/projects'),
+    ).rejects.toThrowError('request to http://localhost/projects failed, reason: connect ECONNREFUSED 127.0.0.1');
   });
   test('Query Method - success', async () => {
     const service = new ExpressActionDeliveryService();
@@ -54,7 +54,7 @@ describe('Express Action Delivery Service Test', () => {
       resourceEventPipelineService: new MockResourceEventPipelineService(),
     };
     await service.start(api);
-    const res = await fetch('http://localhost:3000/projects');
+    const res = await fetch('http://localhost/projects');
     const json = await res.json();
     expect(
       res.status,
@@ -72,7 +72,7 @@ describe('Express Action Delivery Service Test', () => {
       resourceEventPipelineService: new MockResourceEventPipelineService(),
     };
     await service.start(api);
-    const res = await fetch('http://localhost:3000/projects?errorCode=unauthorized');
+    const res = await fetch('http://localhost/projects?errorCode=unauthorized');
     const json = await res.json();
     expect(
       res.status,
@@ -90,7 +90,7 @@ describe('Express Action Delivery Service Test', () => {
       resourceEventPipelineService: new MockResourceEventPipelineService(),
     };
     await service.start(api);
-    const res = await fetch('http://localhost:3000/projects/123312');
+    const res = await fetch('http://localhost/projects/123312');
     const json = await res.json();
     expect(
       res.status,
@@ -109,7 +109,7 @@ describe('Express Action Delivery Service Test', () => {
     };
     await service.start(api);
     const body = {name: 'test'};
-    const res = await fetch('http://localhost:3000/projects', {
+    const res = await fetch('http://localhost/projects', {
       method: 'POST',
       body: JSON.stringify(body),
       headers: {'Content-Type': 'application/json'},
@@ -132,7 +132,7 @@ describe('Express Action Delivery Service Test', () => {
       resourceEventPipelineService: new MockResourceEventPipelineService(),
     };
     await service.start(api);
-    const res = await fetch('http://localhost:3000/projects/1232?errorCode=malformedRequest', {
+    const res = await fetch('http://localhost/projects/1232?errorCode=malformedRequest', {
       method: 'PUT',
       headers: {'Content-Type': 'application/json'},
     });
@@ -150,7 +150,7 @@ describe('Express Action Delivery Service Test', () => {
       resourceEventPipelineService: new MockResourceEventPipelineService(),
     };
     await service.start(api);
-    const res = await fetch('http://localhost:3000/projects/1232?errorCode=resourceNotFound', {
+    const res = await fetch('http://localhost/projects/1232?errorCode=resourceNotFound', {
       method: 'PUT',
       headers: {'Content-Type': 'application/json'},
     });
@@ -167,7 +167,7 @@ describe('Express Action Delivery Service Test', () => {
       resourceEventPipelineService: new MockResourceEventPipelineService(),
     };
     await service.start(api);
-    const res = await fetch('http://localhost:3000/projects/*/sync_project', {
+    const res = await fetch('http://localhost/projects/*/sync_project', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
     });
@@ -188,7 +188,7 @@ describe('Express Action Delivery Service Test', () => {
       resourceEventPipelineService: new MockResourceEventPipelineService(),
     };
     await service.start(api);
-    const res = await fetch('http://localhost:3000/projects/123/persons/321/permissions/*/sync_permission', {
+    const res = await fetch('http://localhost/projects/123/persons/321/permissions/*/sync_permission', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
     });
@@ -215,7 +215,7 @@ describe('Express Action Delivery Service Test', () => {
       resourceEventPipelineService: new MockResourceEventPipelineService(),
     };
     await service.start(api);
-    const res = await fetch('http://localhost:3000/projects/123/persons/321/permissions/*/sync_permission?errorCode=error',
+    const res = await fetch('http://localhost/projects/123/persons/321/permissions/*/sync_permission?errorCode=error',
       {
         method: 'POST',
       });
@@ -234,7 +234,7 @@ describe('Express Action Delivery Service Test', () => {
       resourceEventPipelineService: new MockResourceEventPipelineService(),
     };
     await service.start(api);
-    const res = await fetch('http://localhost:3000/projects');
+    const res = await fetch('http://localhost/projects');
     expect(
       res.status,
     ).toBe(500);

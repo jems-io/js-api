@@ -14,7 +14,7 @@ import {
 import * as core from 'express-serve-static-core';
 
 const defaultValues = {
-  port: 3000,
+  port: 80,
 };
 
 export class ExpressActionDeliveryService implements ResourceActionDeliveryService {
@@ -87,35 +87,47 @@ export class ExpressActionDeliveryService implements ResourceActionDeliveryServi
     const paramActionId = `:${resourceName}Id`;
     const suffix = useActionAliasOnPath ? `/${action.alias}` : '';
     const currentPath = `${path}${suffix}`;
+    let resourceId = `${path}/${paramActionId}`;
     switch (action.type) {
       case 'query':
-        this.expressApp?.get(currentPath, this.getResponseHandle(action.id, path));
+        this.expressApp?.get(currentPath, this.getResponseHandle(action.id));
         break;
       case 'get':
-        this.expressApp?.get(`${currentPath}/${paramActionId}`, this.getResponseHandle(action.id, path));
+        this.expressApp?.get(resourceId, this.getResponseHandle(action.id, resourceId));
         break;
       case 'create':
-        this.expressApp?.post(currentPath, this.getResponseHandle(action.id, path));
+        this.expressApp?.post(currentPath, this.getResponseHandle(action.id));
         break;
       case 'update':
-        this.expressApp?.put(`${currentPath}/${paramActionId}`, this.getResponseHandle(action.id, path));
+        this.expressApp?.put(resourceId, this.getResponseHandle(action.id, resourceId));
         break;
       case 'delete':
-        this.expressApp?.delete(`${currentPath}/${paramActionId}`, this.getResponseHandle(action.id, path));
+        this.expressApp?.delete(resourceId, this.getResponseHandle(action.id, resourceId));
         break;
       case 'patch':
-        this.expressApp?.patch(`${currentPath}/${paramActionId}`, this.getResponseHandle(action.id, path));
+        this.expressApp?.patch(resourceId, this.getResponseHandle(action.id, resourceId));
         break;
       case 'execute':
-        this.expressApp?.post(`${path}/${paramActionId}/${action.alias}`, this.getResponseHandle(action.id, path));
+        this.expressApp?.post(`${resourceId}/${action.alias}`, this.getResponseHandle(action.id, resourceId));
         break;
     }
   }
 
-  private getResponseHandle(actionId: string, path: string): (req: Request, res: Response) => Promise<void> {
+  private getResponseHandle(actionId: string, resourceId?: string): (req: Request, res: Response) => Promise<void> {
     return async (req: Request, res: Response) => {
       try {
-        const apiRequest = this.toApiReq(path, req);
+        let resourceWithValue = undefined;
+
+        if (resourceId) {
+          resourceWithValue = resourceId.substring(1, resourceId.length);
+          for (let query of Object.keys(req.query)) {
+            resourceWithValue = resourceWithValue?.replace(`:${query}`, req.params[query]);
+          }
+          for (let param of Object.keys(req.params)) {
+            resourceWithValue = resourceWithValue?.replace(`:${param}`, req.params[param]);
+          }
+        }
+        const apiRequest = this.toApiReq(req, resourceWithValue);
         const response = await this.apiRuntimeContext?.resourceActionPipelineService?.pipe(actionId, apiRequest);
         if (response) {
           res.contentType(this.toContentType(response.payloadType));
@@ -154,10 +166,10 @@ export class ExpressActionDeliveryService implements ResourceActionDeliveryServi
     }
   }
 
-  private toApiReq(path: string, req: Request): ApiRequest {
+  private toApiReq(req: Request, resourceId?: string): ApiRequest {
     return {
       id: uuid.v4(),
-      resourceId: path,
+      resourceId: resourceId || '',
       metadata: {
         headers: req.headers,
         cookies: req.cookies,

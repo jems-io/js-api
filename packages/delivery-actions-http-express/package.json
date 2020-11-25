@@ -1,6 +1,6 @@
 {
   "name": "@jems/api-delivery-actions-http-express",
-  "version": "0.1.1",
+  "version": "0.1.3",
   "repository": "https://github.com/jems-io/api",
   "main": "dist/index.js",
   "author": "Francisco Mercedes <franciscomerdot@gmail.com>, Stefano Santos <sydg.18@gmail.com>",
@@ -9,7 +9,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@jems/api-domain": "0.1.0",
+    "@jems/api-domain": "0.1.1",
     "express": "4.17.1",
     "uuid": "8.3.0",
     "http-terminator": "2.0.3"

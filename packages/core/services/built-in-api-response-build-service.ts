@@ -12,7 +12,7 @@ export class BuiltInApiResponseBuildService implements ApiResponseBuildService {
   buildJsonResponse(json: any, apiResponseStatus: ApiResponseStatus): ApiResponse {
     return {
       status: apiResponseStatus,
-      payload: Buffer.from(json),
+      payload: Buffer.from(JSON.stringify(json)),
       payloadType: 'json',
     };
   }

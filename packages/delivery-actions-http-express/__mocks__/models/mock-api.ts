@@ -1,7 +1,7 @@
 import {
   Api, ApiRequest,
   ApiResponse, ApiResponseStatus, ApiRoutine,
-} from '../../../domain/models';
+} from '@jems/api-domain';
 import exp from 'constants';
 
 export const MockApi: Api = {
