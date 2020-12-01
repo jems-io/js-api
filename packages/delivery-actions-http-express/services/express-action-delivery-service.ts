@@ -59,9 +59,10 @@ export class ExpressActionDeliveryService implements ResourceActionDeliveryServi
     return Promise.resolve();
   }
 
-  private startResource(resource: ApiResourceProtected, path: string = '') {
-    const currentPath = `${path}/${resource.alias}`;
+  private startResource(resource: ApiResourceProtected, previousResourcePath: string = '') {
     const resourceName = singularize(resource.alias);
+    const resourceBasePath = `${previousResourcePath}/${resource.alias}`;
+    const resourcePath = `${resourceBasePath}/:${resourceName}Id`
     const actionTypeCount = resource.actions.reduce((map: { [type: string]: number }, action) => {
       if (!map[action.type]) {
         map[action.type] = 0;
@@ -70,33 +71,33 @@ export class ExpressActionDeliveryService implements ResourceActionDeliveryServi
       return map;
     }, {});
     resource.actions.forEach(action => {
-      this.startAction(action, currentPath, actionTypeCount[action.type] > 1, resourceName);
+      this.startAction(action, resourceBasePath, previousResourcePath, actionTypeCount[action.type] > 1, resourceName);
     });
     resource.resources?.forEach(res => {
-      this.startResource(res, `${currentPath}/:${resourceName}Id`);
+      this.startResource(res, resourcePath);
     });
   }
 
-  private startAction(action: ApiResourceActionProtected, path: string, useActionAliasOnPath: boolean, resourceName: string) {
-    const actionUniqueId = `${path}/${action.alias}`;
-    if (this.mapActions[actionUniqueId]) {
-      throw Error(`Two actions cannot have the same alias on the same resource, action:${actionUniqueId}`);
+  private startAction(action: ApiResourceActionProtected, resourceBasePath: string, previousResourcePath: string, useActionAliasOnPath: boolean, resourceName: string) {
+    if (this.mapActions[action.id]) {
+      throw Error(`Two actions cannot have the same alias on the same resource, action:${action.id}`);
     }
-    this.mapActions[actionUniqueId] = actionUniqueId;
+
+    this.mapActions[action.id] = action.id;
     this.hasActions = true;
     const paramActionId = `:${resourceName}Id`;
     const suffix = useActionAliasOnPath ? `/${action.alias}` : '';
-    const currentPath = `${path}${suffix}`;
-    let resourceId = `${path}/${paramActionId}`;
+    const currentPath = `${resourceBasePath}${suffix}`;
+    let resourceId = `${resourceBasePath}/${paramActionId}`;
     switch (action.type) {
       case 'query':
-        this.expressApp?.get(currentPath, this.getResponseHandle(action.id));
+        this.expressApp?.get(currentPath, this.getResponseHandle(action.id, previousResourcePath));
         break;
       case 'get':
         this.expressApp?.get(resourceId, this.getResponseHandle(action.id, resourceId));
         break;
       case 'create':
-        this.expressApp?.post(currentPath, this.getResponseHandle(action.id));
+        this.expressApp?.post(currentPath, this.getResponseHandle(action.id, previousResourcePath));
         break;
       case 'update':
         this.expressApp?.put(resourceId, this.getResponseHandle(action.id, resourceId));
