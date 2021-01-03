@@ -9,8 +9,7 @@
     "access": "public"
   },
   "scripts": {
-    "build": "tsc index.ts --outDir dist --declaration --esModuleInterop",
-    "publish": "npm publish"
+    "build": "tsc index.ts --outDir dist --declaration --esModuleInterop"
   },
   "dependencies": {
     "@jems/api-domain": "0.2.0",
