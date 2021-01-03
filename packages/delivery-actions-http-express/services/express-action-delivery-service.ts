@@ -135,7 +135,6 @@ export class ExpressActionDeliveryService implements ResourceActionDeliveryServi
           res.status(this.toStatusCode(response.status)).send(response.payload);
         }
       } catch (error) {
-        console.error(error);
         res.status(this.mapErrorStatusCode(error)).send({message: error.toString()});
       }
     };

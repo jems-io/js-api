@@ -11,8 +11,7 @@ import {ApiRuntimeContext} from '@jems/api-domain';
 import fetch from 'node-fetch';
 import {BuiltInApiRuntimeService, BuiltinResourceActionPipelineService} from '../../core/services';
 
-const actionPipelineService = new BuiltinResourceActionPipelineService();
-actionPipelineService.useApi(MockApiRealApi);
+const actionPipelineService = new BuiltinResourceActionPipelineService(MockApiRealApi);
 
 describe('Express Action Delivery Service Test', () => {
   test('Start without resource', async () => {
@@ -226,8 +225,7 @@ describe('Express Action Delivery Service Test', () => {
   });
   test('Deep Execute - error 500', async () => {
     const service = new ExpressActionDeliveryService();
-    const resourceActionPipelineService = new BuiltinResourceActionPipelineService();
-    resourceActionPipelineService.useApi(MockApiError);
+    const resourceActionPipelineService = new BuiltinResourceActionPipelineService(MockApiError);
     const api: ApiRuntimeContext = {
       api: BuiltInApiRuntimeService.toApiProtected(MockApiError),
       resourceActionPipelineService,
@@ -242,8 +240,7 @@ describe('Express Action Delivery Service Test', () => {
   });
   test('Start start - error', async () => {
     const service = new ExpressActionDeliveryService();
-    const resourceActionPipelineService = new BuiltinResourceActionPipelineService();
-    resourceActionPipelineService.useApi(MockApiError);
+    const resourceActionPipelineService = new BuiltinResourceActionPipelineService(MockApiError);
     const api: ApiRuntimeContext = {
       api: BuiltInApiRuntimeService.toApiProtected(MockApiError),
       resourceActionPipelineService,
@@ -257,8 +254,7 @@ describe('Express Action Delivery Service Test', () => {
   });
   test('Actions Repeated - error', async () => {
     const service = new ExpressActionDeliveryService();
-    const resourceActionPipelineService = new BuiltinResourceActionPipelineService();
-    resourceActionPipelineService.useApi(MockApiActionRepeated);
+    const resourceActionPipelineService = new BuiltinResourceActionPipelineService(MockApiActionRepeated);
     const api: ApiRuntimeContext = {
       api: BuiltInApiRuntimeService.toApiProtected(MockApiActionRepeated),
       resourceActionPipelineService,

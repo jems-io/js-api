@@ -206,8 +206,8 @@ export const MockApiCrashOnDeepMiddleware: Api = {
     {
       alias: 'middle',
       name: 'Middleware',
-      routine: (apiRequest): ApiRequest => {
-        return apiRequest;
+      routine: async (apiRequest, invokeNextRoutine): Promise<ApiResponse> => {
+        return invokeNextRoutine(apiRequest);
       },
     },
   ],

@@ -1,6 +1,6 @@
 {
   "name": "@jems/api-core",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "repository": "https://github.com/jems-io/api",
   "main": "dist/index.js",
   "author": "Francisco Mercedes <franciscomerdot@gmail.com>, Stefano Santos <sydg.18@gmail.com>",
@@ -13,7 +13,7 @@
     "publish": "npm publish"
   },
   "dependencies": {
-    "@jems/api-domain": "0.1.1",
+    "@jems/api-domain": "0.2.0",
     "uuid": "8.3.0"
   },
   "devDependencies": {

@@ -6,68 +6,111 @@ import {
   ApiResourceAction,
   ApiResourceActionMiddleware,
   ApiResponse,
-} from '@jems/api-domain';
+} from "@jems/api-domain";
 
-export class BuiltinResourceActionPipelineService implements ResourceActionPipelineService {
-  private api?: Api;
-
-  useApi(api: Api) {
-    this.api = api;
-  }
+interface ActionExecutionComponents {
+  middlewares: ApiResourceActionMiddleware[];
+  resource?: ApiResource;
+  action?: ApiResourceAction;
+}
+export class BuiltinResourceActionPipelineService
+  implements ResourceActionPipelineService {
+  constructor(private api: Api) {}
 
   async pipe(actionId: string, request: ApiRequest): Promise<ApiResponse> {
     if (!this.api) {
-      throw Error('Api must be defined');
+      throw Error("Api must be defined");
     }
     if (!actionId) {
-      throw Error('Action Id must be defined');
+      throw Error("Action Id must be defined");
     }
-    const parts = actionId.split('/');
-    const firstResource = this.findFirstResource(parts[0]);
-    const resourcesPath = parts.splice(1);
-    const action = this.getAction([...resourcesPath], firstResource);
-    if (!action) {
+
+    const actionExecutionComponents = this.getActionExecutionComponents(
+      actionId
+    );
+
+    if (!actionExecutionComponents.action) {
       throw Error(`Action with id ${actionId} was not found`);
     }
-    request = await this.runMiddlewares(request, this.api.resourcesActionsMiddlewares);
-    request = await this.runResourcesMiddlewares(resourcesPath, request, firstResource);
 
-    const response = await action.routine(request);
-    return Promise.resolve(response);
-  }
-
-  private getAction(parts: string[], resource?: ApiResource): ApiResourceAction | undefined {
-    if (!resource) {
-      return undefined;
+    if (!actionExecutionComponents.middlewares.length) {
+      return await actionExecutionComponents.action.routine(request);
+    } else {
+      return await this.getActionResponseWithMiddlewareChain(
+        request,
+        actionExecutionComponents.action,
+        actionExecutionComponents.middlewares,
+        0
+      );
     }
-    if (parts.length === 1) {
-      return resource.actions.filter(action => action.alias === parts[0])?.[0];
-    }
-    return this.getAction(parts.splice(1), this.findResource(parts[0], resource.resources));
   }
 
-  private findFirstResource(resourceAlias: string): ApiResource | undefined {
-    return this.findResource(resourceAlias, this.api?.resources);
+  private getActionExecutionComponents(
+    actionId: string
+  ): ActionExecutionComponents {
+    return actionId.split("/").reduce<ActionExecutionComponents>(
+      (components, actionSection, actionSectionIndex, actionSections) => {
+        let resources: ApiResource[] | undefined;
+
+        if (actionSectionIndex === 0) {
+          resources = this.api.resources;
+        } else {
+          resources = components.resource?.resources;
+        }
+
+        const toReturnComponents: ActionExecutionComponents = {
+          middlewares: components.middlewares,
+        };
+
+        if (resources && actionSectionIndex < actionSections.length - 1) {
+          toReturnComponents.resource = resources?.find(
+            (resource) => resource.alias === actionSection
+          );
+        }
+
+        if (
+          actionSectionIndex === actionSections.length - 1 &&
+          components.resource
+        ) {
+          toReturnComponents.middlewares.push(
+            ...(components.resource.actionsMiddlewares || [])
+          );
+          toReturnComponents.action = components.resource.actions.find(
+            (action) => action.alias === actionSection
+          );
+
+          if (toReturnComponents.action) {
+            toReturnComponents.middlewares.push(
+              ...(toReturnComponents.action?.middlewares || [])
+            );
+          }
+        }
+
+        return toReturnComponents;
+      },
+      {
+        middlewares: this.api.resourcesActionsMiddlewares || [],
+      }
+    );
   }
 
-  private findResource(resourceAlias: string, resources?: ApiResource[]): ApiResource | undefined {
-    return resources?.filter(resource => resource.alias === resourceAlias)?.[0];
+  private getActionResponseWithMiddlewareChain(
+    request: ApiRequest,
+    action: ApiResourceAction,
+    middlewares: ApiResourceActionMiddleware[],
+    middlewareIndex: number
+  ): ApiResponse | Promise<ApiResponse> {
+    return middlewares[middlewareIndex].routine(request, async middlewareRequest => {
+      if (middlewareIndex < middlewares.length) {
+        return this.getActionResponseWithMiddlewareChain(
+          middlewareRequest || request,
+          action,
+          middlewares,
+          middlewareIndex + 1
+        );
+      } else {
+        return action.routine(middlewareRequest || request);
+      }
+    });
   }
-
-  private async runResourcesMiddlewares(parts: string[], request: ApiRequest, resource?: ApiResource): Promise<ApiRequest> {
-    request = await this.runMiddlewares(request, resource?.actionsMiddlewares);
-    if (parts.length === 1) {
-      const action = resource?.actions?.filter(action => action.alias === parts[0])?.[0];
-      return this.runMiddlewares(request, action?.middlewares);
-    }
-    return this.runResourcesMiddlewares(parts.splice(1), request, this.findResource(parts[0], resource?.resources));
-  }
-
-  private async runMiddlewares(request: ApiRequest, middlewares?: ApiResourceActionMiddleware[]): Promise<ApiRequest> {
-    for (let middleware of middlewares || []) {
-      request = await middleware.routine(request);
-    }
-    return Promise.resolve(request);
-  }
-
 }

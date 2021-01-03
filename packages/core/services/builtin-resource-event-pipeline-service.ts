@@ -7,14 +7,9 @@ export class BuiltinResourceEventPipelineService implements ResourceEventPipelin
 
   async pipe(eventId: string, eventContent: ApiEvent): Promise<void> {
     await Promise.all(Object.keys(this.subscriptions[eventId] || []).map(async (subscriptionId) => {
-        try {
           const handler = this.subscriptions[eventId][subscriptionId];
           await handler(eventContent);
-        } catch (e) {
-          console.error(e);
-        }
-      },
-    ));
+    }));
     return Promise.resolve();
   }
 

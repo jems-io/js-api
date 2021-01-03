@@ -9,5 +9,5 @@ export interface ApiResourceAction {
     type: ApiResourceActionType
     description?: string
     middlewares?: ApiResourceActionMiddleware[]
-    routine: ApiRoutine<ApiResponse>
+    routine: ApiRoutine
 }

@@ -1,6 +1,6 @@
 import { Api } from "../models/api";
 import { ResourceActionDeliveryService } from "./resource-action-delivery-service";
-import { ResourceEventDeliveryService } from "./resource-event-delivery-servic";
+import { ResourceEventDeliveryService } from "./resource-event-delivery-service";
 
 export interface ApiRuntimeService {
     useApi(api: Api): Promise<void>
