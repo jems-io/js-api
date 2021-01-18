@@ -171,8 +171,7 @@ export class ExpressActionDeliveryService implements ResourceActionDeliveryServi
       id: uuid.v4(),
       resourceId: resourceId || '',
       metadata: {
-        headers: req.headers,
-        cookies: req.cookies,
+        ...req.headers
       },
       parameters: {...JSON.parse(JSON.stringify(req.query)), ...req.params},
       payload: Buffer.from(JSON.stringify(req.body || {})),
