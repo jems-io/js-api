@@ -101,7 +101,7 @@ export class BuiltinResourceActionPipelineService
     middlewareIndex: number
   ): ApiResponse | Promise<ApiResponse> {
     return middlewares[middlewareIndex].routine(request, async middlewareRequest => {
-      if (middlewareIndex < middlewares.length) {
+      if (middlewareIndex < (middlewares.length - 1)) {
         return this.getActionResponseWithMiddlewareChain(
           middlewareRequest || request,
           action,

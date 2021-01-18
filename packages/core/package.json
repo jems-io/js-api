@@ -1,6 +1,6 @@
 {
   "name": "@jems/api-core",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "repository": "https://github.com/jems-io/api",
   "main": "dist/index.js",
   "author": "Francisco Mercedes <franciscomerdot@gmail.com>, Stefano Santos <sydg.18@gmail.com>",
