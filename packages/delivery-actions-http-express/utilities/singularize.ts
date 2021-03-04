@@ -88,4 +88,5 @@ const irregularRules: { [plural: string]: string } = {
   'grooves': 'groove',
   'pickaxes': 'pickaxe',
   'passersby': 'passerby',
+  'categories': 'category',
 };
