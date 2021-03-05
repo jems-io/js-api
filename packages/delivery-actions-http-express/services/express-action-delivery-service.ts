@@ -87,7 +87,7 @@ export class ExpressActionDeliveryService
         action,
         resourceBasePath,
         previousResourcePath,
-        actionTypeCount[action.type] > 1 && action.alias !== 'default', // TODO: make this only to relay in the action alias to be default or not
+        actionTypeCount[action.type] > 1 || action.alias !== 'default', // TODO: make this only to relay in the action alias to be default or not
         resourceName
       );
     });
