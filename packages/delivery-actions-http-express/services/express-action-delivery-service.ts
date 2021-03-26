@@ -12,6 +12,10 @@ import * as uuid from "uuid";
 import { singularize } from "../utilities";
 import { createHttpTerminator, HttpTerminator } from "http-terminator";
 import * as core from "express-serve-static-core";
+import cors from 'cors'
+
+ 
+
 
 const defaultValues = {
   port: 80,
@@ -39,6 +43,7 @@ export class ExpressActionDeliveryService
     }
     this.expressApp = express();
     this.expressApp.use(express.json());
+    this.expressApp.use(cors())
     this.hasActions = false;
     this.parameters = parameters;
     this.mapActions = {};
@@ -87,7 +92,7 @@ export class ExpressActionDeliveryService
         action,
         resourceBasePath,
         previousResourcePath,
-        actionTypeCount[action.type] > 1 || action.alias !== 'default', // TODO: make this only to relay in the action alias to be default or not
+        actionTypeCount[action.type] > 1 && action.alias !== 'default', // TODO: make this only to relay in the action alias to be default or not
         resourceName
       );
     });
