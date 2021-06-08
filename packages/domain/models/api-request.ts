@@ -1,10 +1,11 @@
-import {ApiRuntimeContext} from './api-runtime-context';
+import { ApiProtected } from "./api-protected";
 
-export interface ApiRequest {
-    id: string
-    resourceId?: string
-    metadata: { [ name:string ]: any }
-    parameters: { [ name:string ]: string }
-    payload: Buffer,
-    context?: ApiRuntimeContext
+export interface ApiRequest<ContextType = { [key: string]: any }> {
+  id: string;
+  actionId: string;
+  resourceId?: string;
+  metadata: { [name: string]: string | string[] };
+  parameters: { [name: string]: string };
+  payload: Buffer;
+  context?: ContextType;
 }

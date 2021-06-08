@@ -3,7 +3,7 @@ import {
   ApiRequest,
   ApiResponse,
   ApiResponseStatus,
-} from "../../../domain/models";
+} from "@jems/api-domain";
 
 export const MockApi: Api = {
   name: "Mock Api",
@@ -15,6 +15,7 @@ export const MockApi: Api = {
       name: "Projects",
       actions: [],
       middlewares: [],
+
       resources: [
         {
           alias: "vaults",
@@ -48,6 +49,7 @@ export const MockApi: Api = {
             },
           ],
           middlewares: [],
+
           resources: [
             {
               alias: "items",
@@ -75,6 +77,7 @@ export const getApiMockRunOneAction = (onRunAction: OnRunAction): Api => {
         name: "Projects",
         actions: [],
         middlewares: [],
+
         resources: [
           {
             alias: "vaults",
@@ -96,6 +99,7 @@ export const getApiMockRunOneAction = (onRunAction: OnRunAction): Api => {
               },
             ],
             middlewares: [],
+
             resources: [
               {
                 alias: "items",
@@ -136,6 +140,7 @@ export const MockApiCrashOnFirstMiddleware: Api = {
         },
       ],
       middlewares: [],
+
       resources: [],
     },
   ],
@@ -182,6 +187,7 @@ export const MockApiCrashOnDeepMiddleware: Api = {
         },
       ],
       middlewares: [],
+
       resources: [],
     },
   ],
@@ -424,6 +430,7 @@ export const MockApiRealApi: Api = {
         },
       ],
       middlewares: [],
+
       resources: [
         {
           alias: "persons",
@@ -616,6 +623,7 @@ export const MockApiActionRepeated: Api = {
       name: "Projects",
       actions: [],
       middlewares: [],
+
       resources: [
         {
           alias: "persons",

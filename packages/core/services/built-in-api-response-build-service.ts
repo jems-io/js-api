@@ -1,6 +1,6 @@
-import {ApiResponseBuildService, ApiResponse, ApiResponseStatus} from '@jems/api-domain';
+import { ApiResponse, ApiResponseStatus} from '@jems/api-domain';
 
-export class BuiltInApiResponseBuildService implements ApiResponseBuildService {
+export class BuiltInApiResponseBuildService {
   buildBinaryResponse(binary: Buffer, apiResponseStatus: ApiResponseStatus): ApiResponse {
     return {
       status: apiResponseStatus,

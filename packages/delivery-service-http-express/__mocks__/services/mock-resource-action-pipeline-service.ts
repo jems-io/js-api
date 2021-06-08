@@ -1,8 +1,8 @@
-import { ApiRequest, ApiResponse } from "../../../domain/models";
-import { ApiResourceActionPipelineService } from "../../../domain/services";
+import { ApiRequest, ApiResponse } from "@jems/api-domain/models";
+import { ApiResourceActionPipelineService } from "@jems/api-domain/services";
 import { MockApiResponseComplete, MockApiResponseError } from "../models";
 
-export class MockResourceActionPipelineService
+export class MockApiResourceActionPipelineService
   implements ApiResourceActionPipelineService
 {
   pipe(actionId: string, request: ApiRequest): Promise<ApiResponse> {

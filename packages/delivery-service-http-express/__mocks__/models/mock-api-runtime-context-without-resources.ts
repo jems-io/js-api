@@ -1,5 +1,5 @@
-import { ApiRuntimeContext } from "../../../domain/models";
-import { MockResourceActionPipelineService } from "../services";
+import { ApiRuntimeContext } from "@jems/api-domain/models";
+import { MockApiResourceActionPipelineService } from "../services";
 
 export const MockApiRuntimeContextWithoutResources: ApiRuntimeContext = {
   api: {
@@ -7,9 +7,8 @@ export const MockApiRuntimeContextWithoutResources: ApiRuntimeContext = {
     version: "",
     resources: [],
   },
-  apiResourceActionPipelineService: new MockResourceActionPipelineService(),
+  apiResourceActionPipelineService: new MockApiResourceActionPipelineService(),
 };
-
 export const MockApiRuntimeContextWithoutActions: ApiRuntimeContext = {
   api: {
     name: "",
@@ -23,9 +22,8 @@ export const MockApiRuntimeContextWithoutActions: ApiRuntimeContext = {
       },
     ],
   },
-  apiResourceActionPipelineService: new MockResourceActionPipelineService(),
+  apiResourceActionPipelineService: new MockApiResourceActionPipelineService(),
 };
-
 export const MockApiRuntimeContext: ApiRuntimeContext = {
   api: {
     name: "",
@@ -46,5 +44,5 @@ export const MockApiRuntimeContext: ApiRuntimeContext = {
       },
     ],
   },
-  apiResourceActionPipelineService: new MockResourceActionPipelineService(),
+  apiResourceActionPipelineService: new MockApiResourceActionPipelineService(),
 };

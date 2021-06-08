@@ -1,9 +1,8 @@
-import {ApiRequest} from '../../../domain/models';
-import { MockApi } from './mock-api';
+import {ApiRequest} from '@jems/api-domain/models';
 
 export const MockApiRequest: ApiRequest = {
   id: '',
-  actionId: '',
+  actionId: 'id',
   resourceId: '',
   metadata: {},
   parameters: {},

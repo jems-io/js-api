@@ -1,7 +1,7 @@
-import { ApiRuntimeContext } from "../../../domain/models";
-import { ApiDeliveryService } from "../../../domain/services";
+import { ApiDeliveryService } from "@jems/api-domain";
+import { ApiRuntimeContext } from "@jems/api-domain/models";
 
-export class MockResourceActionDeliveryService implements ApiDeliveryService {
+export class MockDeliveryService implements ApiDeliveryService {
   isStarted: boolean = false;
 
   start(apiRuntimeContext: ApiRuntimeContext): Promise<void> {

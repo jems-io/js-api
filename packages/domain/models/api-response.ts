@@ -1,9 +1,8 @@
-import {ApiResponseStatus} from './api-respos-status';
-
-export type PayloadType = 'json' | 'text' | 'xml' | 'binary'
+import { ApiPayloadType } from "./api-payload-type";
+import { ApiResponseStatus } from "./api-response-status";
 
 export interface ApiResponse {
-  status: ApiResponseStatus
-  payload: Buffer
-  payloadType: PayloadType
+  status: ApiResponseStatus;
+  payload: Buffer;
+  payloadType: ApiPayloadType;
 }

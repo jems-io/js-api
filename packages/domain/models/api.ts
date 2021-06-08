@@ -1,10 +1,10 @@
 import { ApiResource } from "./api-resource";
-import { ApiResourceActionMiddleware } from "./api-resource-action-middleware";
+import { ApiMiddleware } from "./api-middleware";
 
 export interface Api {
-    name: string
-    version: string
-    description?: string
-    resources: ApiResource[]
-    resourcesActionsMiddlewares?: ApiResourceActionMiddleware[]
+  name: string;
+  version: string;
+  description?: string;
+  resources: ApiResource[];
+  middlewares?: ApiMiddleware[];
 }
