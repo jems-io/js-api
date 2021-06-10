@@ -12,18 +12,17 @@ import * as uuid from "uuid";
 import { singularize } from "../utilities";
 import { createHttpTerminator, HttpTerminator } from "http-terminator";
 import * as core from "express-serve-static-core";
-import cors from 'cors'
+import cors from "cors";
 
 const defaultValues = {
   port: 80,
 };
 
-export class ExpressActionDeliveryService
-  implements ApiDeliveryService {
+export class ExpressActionDeliveryService implements ApiDeliveryService {
   private expressApp?: core.Express;
   private apiRuntimeContext?: ApiRuntimeContext;
   private httpTerminator?: HttpTerminator;
-  private mapActions: { [actionPathAlias: string]: string } = {};
+  private mapActions: { [actionPathAlias: string]: boolean } = {};
   private parameters?: { [param: string]: any };
 
   async start(
@@ -37,9 +36,10 @@ export class ExpressActionDeliveryService
     if (apiRuntimeContext.api.resources.length === 0) {
       throw Error("Should have a least one resource");
     }
+
     this.expressApp = express();
     this.expressApp.use(express.json());
-    this.expressApp.use(cors())
+    this.expressApp.use(cors());
     this.parameters = parameters;
     this.mapActions = {};
     apiRuntimeContext.api.resources.forEach((resource) => {
@@ -84,7 +84,6 @@ export class ExpressActionDeliveryService
         action,
         resourceBasePath,
         previousResourcePath,
-        actionTypeCount[action.type] > 1 && action.alias !== 'default', // TODO: make this only to relay in the action alias to be default or not
         resourceName
       );
     });
@@ -97,58 +96,66 @@ export class ExpressActionDeliveryService
     action: ApiResourceActionProtected,
     resourceBasePath: string,
     previousResourcePath: string,
-    useActionAliasOnPath: boolean,
     resourceName: string
   ) {
     if (this.mapActions[action.id]) {
       throw Error(
-        `Two actions cannot have the same alias on the same resource, action:${action.id}`
+        `Two actions cannot have the same type and alias on the same resource, action:${action.id}`
       );
     }
 
-    this.mapActions[action.id] = action.id;
+    this.mapActions[action.id] = true;
     const paramActionId = `:${this.toCamelCase(resourceName)}Id`;
-    const suffix = useActionAliasOnPath ? `/${action.alias}` : "";
+    const suffix = action.alias ? `/${action.alias}` : "";
     const currentPath = `${resourceBasePath}${suffix}`;
-    let resourceId = `${resourceBasePath}/${paramActionId}`;
+    let resourceId = `${resourceBasePath}/${paramActionId}${suffix}`;
+
+
     switch (action.type) {
       case "query":
+        this.apiRuntimeContext?.apiLogService.debug('[Http Express Delivery Service]', `Registering ${action.id} as GET ${currentPath}`);
         this.expressApp?.get(
           currentPath,
           this.getResponseHandle(action.id, previousResourcePath)
         );
         break;
       case "get":
+        this.apiRuntimeContext?.apiLogService.debug('[Http Express Delivery Service]', `Registering ${action.id} as GET ${resourceId}`);
         this.expressApp?.get(
           resourceId,
           this.getResponseHandle(action.id, resourceId)
         );
         break;
       case "create":
+        this.apiRuntimeContext?.apiLogService.debug('[Http Express Delivery Service]', `Registering ${action.id} as POST ${currentPath}`);
         this.expressApp?.post(
           currentPath,
           this.getResponseHandle(action.id, previousResourcePath)
         );
         break;
       case "update":
+        this.apiRuntimeContext?.apiLogService.debug('[Http Express Delivery Service]', `Registering ${action.id} as PUT ${resourceId}`);
         this.expressApp?.put(
           resourceId,
           this.getResponseHandle(action.id, resourceId)
         );
         break;
       case "delete":
+        this.apiRuntimeContext?.apiLogService.debug('[Http Express Delivery Service]', `Registering ${action.id} as DELETE ${resourceId}`);
         this.expressApp?.delete(
           resourceId,
           this.getResponseHandle(action.id, resourceId)
         );
         break;
       case "patch":
+        this.apiRuntimeContext?.apiLogService.debug('[Http Express Delivery Service]', `Registering ${action.id} as PATCH ${resourceId}`);
         this.expressApp?.patch(
           resourceId,
           this.getResponseHandle(action.id, resourceId)
         );
         break;
       case "execute":
+        this.apiRuntimeContext?.apiLogService.debug('[Http Express Delivery Service]', `Registering ${action.id} as POST ${resourceId}/${action.alias}`);
         this.expressApp?.post(
           `${resourceId}/${action.alias}`,
           this.getResponseHandle(action.id, resourceId)
@@ -163,6 +170,8 @@ export class ExpressActionDeliveryService
   ): (req: Request, res: Response) => Promise<void> {
     return async (req: Request, res: Response) => {
       try {
+        this.apiRuntimeContext?.apiLogService.debug('[Http Express Delivery Service]', `Request arrive ${req.method} ${req.path}`);
+
         let resourceWithValue = undefined;
 
         if (resourceId) {
@@ -181,10 +190,11 @@ export class ExpressActionDeliveryService
           }
         }
         const apiRequest = this.toApiReq(req, actionId, resourceWithValue);
-        const response = await this.apiRuntimeContext?.apiResourceActionPipelineService?.pipe(
-          actionId,
-          apiRequest
-        );
+        const response =
+          await this.apiRuntimeContext?.apiResourceActionPipelineService?.pipe(
+            actionId,
+            apiRequest
+          );
         if (response) {
           res.contentType(this.toContentType(response.payloadType));
           res.status(this.toStatusCode(response.status)).send(response.payload);
@@ -193,6 +203,7 @@ export class ExpressActionDeliveryService
         res
           .status(this.mapErrorStatusCode(error))
           .send({ message: error.toString() });
+        this.apiRuntimeContext?.apiLogService.logError(error);
       }
     };
   }
@@ -227,14 +238,18 @@ export class ExpressActionDeliveryService
     }
   }
 
-  private toApiReq(req: Request, actionId: string, resourceId?: string): ApiRequest {
+  private toApiReq(
+    req: Request,
+    actionId: string,
+    resourceId?: string
+  ): ApiRequest {
     return {
       id: uuid.v4(),
       actionId,
       resourceId: resourceId || "",
-      metadata: ({
+      metadata: {
         ...req.headers,
-      }) as any,
+      } as any,
       parameters: { ...JSON.parse(JSON.stringify(req.query)), ...req.params },
       payload: Buffer.from(JSON.stringify(req.body || {})),
       context: {},
@@ -259,13 +274,20 @@ export class ExpressActionDeliveryService
 
   private toCamelCase(str: string) {
     const arr = str.match(/[a-z]+|\d+/gi);
-    return arr && arr.map((m, i) => {
-      let low = m.toLowerCase();
-      if (i != 0) {
-        low = low.split("").map((s, k) => (k == 0 ? s.toUpperCase() : s))
-          .join('');
-      }
-      return low;
-    }).join('');
+    return (
+      arr &&
+      arr
+        .map((m, i) => {
+          let low = m.toLowerCase();
+          if (i != 0) {
+            low = low
+              .split("")
+              .map((s, k) => (k == 0 ? s.toUpperCase() : s))
+              .join("");
+          }
+          return low;
+        })
+        .join("")
+    );
   }
 }

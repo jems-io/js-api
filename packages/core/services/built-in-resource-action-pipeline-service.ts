@@ -1,5 +1,6 @@
 import {
   Api,
+  ApiLogService,
   ApiMiddleware,
   ApiRequest,
   ApiResource,
@@ -16,7 +17,7 @@ interface ActionExecutionComponents {
 export class BuiltInApiResourceActionPipelineService
   implements ApiResourceActionPipelineService
 {
-  constructor(private api: Api) {}
+  constructor(private api: Api, private logService: ApiLogService) {}
 
   async pipe(actionId: string, request: ApiRequest): Promise<ApiResponse> {
     if (!this.api) {
@@ -33,6 +34,11 @@ export class BuiltInApiResourceActionPipelineService
       throw Error(`Action with id ${actionId} was not found`);
     }
 
+    this.logService.logInfo(
+      `Api Request ${actionExecutionComponents.action.type} ${actionId}`,
+      request.parameters ?? {}
+    );
+
     if (!actionExecutionComponents.middlewares.length) {
       return await actionExecutionComponents.action.routine(request);
     } else {
@@ -48,35 +54,42 @@ export class BuiltInApiResourceActionPipelineService
   private getActionExecutionComponents(
     actionId: string
   ): ActionExecutionComponents {
-    return actionId.split("/").reduce<ActionExecutionComponents>(
+    const actionTypeAndPath = actionId.split(":");
+    const actionType = actionTypeAndPath[0];
+
+    return actionTypeAndPath[1].split("/").reduce<ActionExecutionComponents>(
       (components, actionSection, actionSectionIndex, actionSections) => {
-        let resources: ApiResource[] | undefined;
+        let resources: ApiResource[];
 
         if (actionSectionIndex === 0) {
           resources = this.api.resources;
         } else {
-          resources = components.resource?.resources;
+          resources = components.resource?.resources ?? [];
         }
 
         const toReturnComponents: ActionExecutionComponents = {
+          resource: components.resource,
           middlewares: components.middlewares,
         };
 
-        if (resources && actionSectionIndex < actionSections.length - 1) {
-          toReturnComponents.resource = resources?.find(
-            (resource) => resource.alias === actionSection
+        const sectionResource = resources.find(
+          (resource) => resource.alias === actionSection
+        );
+
+        if (sectionResource) {
+          toReturnComponents.resource = sectionResource;
+          toReturnComponents.middlewares.push(
+            ...(sectionResource.middlewares || [])
           );
         }
 
-        if (
-          actionSectionIndex === actionSections.length - 1 &&
-          components.resource
-        ) {
-          toReturnComponents.middlewares.push(
-            ...(components.resource.middlewares || [])
-          );
-          toReturnComponents.action = components.resource.actions.find(
-            (action) => action.alias === actionSection
+        const isLastSection = actionSectionIndex === actionSections.length - 1;
+        if (isLastSection && toReturnComponents.resource) {
+          toReturnComponents.action = toReturnComponents.resource.actions?.find(
+            (action) =>
+              action.type === actionType &&
+              ((!sectionResource && action.alias === actionSection) ||
+                (sectionResource && !action.alias))
           );
 
           if (toReturnComponents.action) {
@@ -89,7 +102,7 @@ export class BuiltInApiResourceActionPipelineService
         return toReturnComponents;
       },
       {
-        middlewares: this.api.middlewares || [],
+        middlewares: this.api.middlewares ?? [],
       }
     );
   }

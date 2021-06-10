@@ -1,4 +1,3 @@
-import { ApiProtected } from "./api-protected";
 
 export interface ApiRequest<ContextType = { [key: string]: any }> {
   id: string;

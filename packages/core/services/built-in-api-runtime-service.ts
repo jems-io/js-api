@@ -21,15 +21,19 @@ interface ApiDeliveryServiceWithParametersMap {
 }
 
 export interface BuiltInApiRuntimeServiceConfiguration {
-  apiLogService?: ApiLogService;
+  debug: boolean;
+  logService: ApiLogService;
 }
 
 export class BuiltInApiRuntimeService implements ApiRuntimeService {
   private actionDeliveryService: ApiDeliveryServiceWithParametersMap = {};
+  private logService: ApiLogService;
 
   constructor(
-    private configuration: BuiltInApiRuntimeServiceConfiguration = {}
-  ) {}
+    private configuration: Partial<BuiltInApiRuntimeServiceConfiguration> = {}
+  ) {
+    this.logService = this.configuration.logService ?? new BuiltInLogService();
+  }
 
   registerDeliveryService(
     api: ApiDeliveryService,
@@ -53,27 +57,50 @@ export class BuiltInApiRuntimeService implements ApiRuntimeService {
       throw Error("Api definition is not valid.");
     }
 
+    this.logService.logInfo(`Starting api`);
+
+    const registeredDelivryServicesKeys = Object.keys(
+      this.actionDeliveryService
+    );
+
+    this.logService.debug(
+      `Delivery services found: ${registeredDelivryServicesKeys.length}`
+    );
+
     const apiRuntimeContext = this.getApiRuntimeContext(api);
 
     await Promise.all([
-      ...Object.keys(this.actionDeliveryService).map((key) => {
-        this.actionDeliveryService[key].actionDeliveryService.start(
+      ...registeredDelivryServicesKeys.map((key) => {
+        const deliveryService = this.actionDeliveryService[key];
+        this.logService.debug(
+          `Starting delivery service: ${deliveryService.actionDeliveryService}`
+        );
+
+        deliveryService.actionDeliveryService.start(
           apiRuntimeContext,
-          this.actionDeliveryService[key].parameters
+          deliveryService.parameters
+        );
+
+        this.logService.debug(
+          `Finished starting delivery service: ${deliveryService.actionDeliveryService}`
         );
       }),
     ]);
+
+    this.logService.logInfo(`Finished starting api`);
   }
 
   private getApiRuntimeContext(api: Api): ApiRuntimeContext {
     return {
       api: this.toApiProtected({ ...api }),
       apiResourceActionPipelineService:
-        new BuiltInApiResourceActionPipelineService({
-          ...api,
-        }),
-      apiLogService:
-        this.configuration.apiLogService ?? new BuiltInLogService(),
+        new BuiltInApiResourceActionPipelineService(
+          {
+            ...api
+          },
+          this.logService
+        ),
+      apiLogService: this.logService,
     };
   }
 
@@ -95,14 +122,24 @@ export class BuiltInApiRuntimeService implements ApiRuntimeService {
       path += "/";
     }
     const currentPath = `${path}${apiResource.alias}`;
+    this.logService.debug(
+      `Found resource ${apiResource.name} · ${currentPath}`
+    );
     return {
       name: apiResource.name,
       alias: apiResource.alias,
       actions:
-        apiResource.actions?.map((action: ApiResourceAction) => ({
-          ...action,
-          id: `${currentPath}/${action.alias}`,
-        })) ?? [],
+        apiResource.actions?.map((action: ApiResourceAction) => {
+          const actionIdSuffix = action.alias ? `/${action.alias}` : ''
+          const actionId = `${action.type}:${currentPath}${actionIdSuffix}`;
+          this.logService.debug(
+            `Found resource action ${action.name} · ${actionId}`
+          );
+          return {
+            ...action,
+            id: actionId,
+          };
+        }) ?? [],
       resources:
         apiResource.resources?.map((resource: ApiResource) =>
           this.toApiResourceProtected(resource, currentPath)
