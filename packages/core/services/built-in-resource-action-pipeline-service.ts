@@ -35,7 +35,7 @@ export class BuiltInApiResourceActionPipelineService
     }
 
     this.logService.logInfo(
-      `Api Request ${actionExecutionComponents.action.type} ${actionId}`,
+      `Api Request ${actionId}`,
       request.parameters ?? {}
     );
 
