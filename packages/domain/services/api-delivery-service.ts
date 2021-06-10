@@ -1,4 +1,4 @@
-import { ApiRuntimeContext } from "../models";
+import { ApiDeliveryServiceInfo, ApiRuntimeContext } from "../models";
 
 export interface ApiDeliveryService {
   start(
@@ -7,4 +7,6 @@ export interface ApiDeliveryService {
   ): Promise<void>;
 
   stop(): Promise<void>;
+
+  getInfo(): Promise<ApiDeliveryServiceInfo>;
 }

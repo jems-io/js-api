@@ -70,19 +70,21 @@ export class BuiltInApiRuntimeService implements ApiRuntimeService {
     const apiRuntimeContext = this.getApiRuntimeContext(api);
 
     await Promise.all([
-      ...registeredDelivryServicesKeys.map((key) => {
+      ...registeredDelivryServicesKeys.map(async (key) => {
         const deliveryService = this.actionDeliveryService[key];
+        const deliveryServiceInfo = await deliveryService.actionDeliveryService.getInfo()
+
         this.logService.debug(
-          `Starting delivery service: ${deliveryService.actionDeliveryService}`
+          `Starting delivery service: ${deliveryServiceInfo.name}`
         );
 
-        deliveryService.actionDeliveryService.start(
+        await deliveryService.actionDeliveryService.start(
           apiRuntimeContext,
           deliveryService.parameters
         );
 
         this.logService.debug(
-          `Finished starting delivery service: ${deliveryService.actionDeliveryService}`
+          `Finished starting delivery service: ${deliveryServiceInfo.name}`
         );
       }),
     ]);

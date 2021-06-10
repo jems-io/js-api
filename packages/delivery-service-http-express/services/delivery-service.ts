@@ -6,6 +6,7 @@ import {
   ApiRuntimeContext,
   ApiPayloadType,
   ApiDeliveryService,
+  ApiDeliveryServiceInfo,
 } from "@jems/api-domain";
 import express, { Request, Response } from "express";
 import * as uuid from "uuid";
@@ -14,6 +15,9 @@ import { createHttpTerminator, HttpTerminator } from "http-terminator";
 import * as core from "express-serve-static-core";
 import cors from "cors";
 
+const deliveryServiceName = "Http Express Delivery Service";
+const deliveryServiceDescription =
+  "Delivers and expose the jems declarative api through the http protocol as a RESTful Web API.";
 const defaultValues = {
   port: 80,
 };
@@ -24,6 +28,13 @@ export class ExpressActionDeliveryService implements ApiDeliveryService {
   private httpTerminator?: HttpTerminator;
   private mapActions: { [actionPathAlias: string]: boolean } = {};
   private parameters?: { [param: string]: any };
+
+  async getInfo(): Promise<ApiDeliveryServiceInfo> {
+    return {
+      name: deliveryServiceName,
+      description: deliveryServiceDescription,
+    };
+  }
 
   async start(
     apiRuntimeContext: ApiRuntimeContext,
@@ -110,52 +121,72 @@ export class ExpressActionDeliveryService implements ApiDeliveryService {
     const currentPath = `${resourceBasePath}${suffix}`;
     let resourceId = `${resourceBasePath}/${paramActionId}${suffix}`;
 
-
     switch (action.type) {
       case "query":
-        this.apiRuntimeContext?.apiLogService.debug('[Http Express Delivery Service]', `Registering ${action.id} as GET ${currentPath}`);
+        this.apiRuntimeContext?.apiLogService.debug(
+          `[${deliveryServiceName}]`,
+          `Registering ${action.id} as GET ${currentPath}`
+        );
         this.expressApp?.get(
           currentPath,
           this.getResponseHandle(action.id, previousResourcePath)
         );
         break;
       case "get":
-        this.apiRuntimeContext?.apiLogService.debug('[Http Express Delivery Service]', `Registering ${action.id} as GET ${resourceId}`);
+        this.apiRuntimeContext?.apiLogService.debug(
+          `[${deliveryServiceName}]`,
+          `Registering ${action.id} as GET ${resourceId}`
+        );
         this.expressApp?.get(
           resourceId,
           this.getResponseHandle(action.id, resourceId)
         );
         break;
       case "create":
-        this.apiRuntimeContext?.apiLogService.debug('[Http Express Delivery Service]', `Registering ${action.id} as POST ${currentPath}`);
+        this.apiRuntimeContext?.apiLogService.debug(
+          `[${deliveryServiceName}]`,
+          `Registering ${action.id} as POST ${currentPath}`
+        );
         this.expressApp?.post(
           currentPath,
           this.getResponseHandle(action.id, previousResourcePath)
         );
         break;
       case "update":
-        this.apiRuntimeContext?.apiLogService.debug('[Http Express Delivery Service]', `Registering ${action.id} as PUT ${resourceId}`);
+        this.apiRuntimeContext?.apiLogService.debug(
+          `[${deliveryServiceName}]`,
+          `Registering ${action.id} as PUT ${resourceId}`
+        );
         this.expressApp?.put(
           resourceId,
           this.getResponseHandle(action.id, resourceId)
         );
         break;
       case "delete":
-        this.apiRuntimeContext?.apiLogService.debug('[Http Express Delivery Service]', `Registering ${action.id} as DELETE ${resourceId}`);
+        this.apiRuntimeContext?.apiLogService.debug(
+          `[${deliveryServiceName}]`,
+          `Registering ${action.id} as DELETE ${resourceId}`
+        );
         this.expressApp?.delete(
           resourceId,
           this.getResponseHandle(action.id, resourceId)
         );
         break;
       case "patch":
-        this.apiRuntimeContext?.apiLogService.debug('[Http Express Delivery Service]', `Registering ${action.id} as PATCH ${resourceId}`);
+        this.apiRuntimeContext?.apiLogService.debug(
+          `[${deliveryServiceName}]`,
+          `Registering ${action.id} as PATCH ${resourceId}`
+        );
         this.expressApp?.patch(
           resourceId,
           this.getResponseHandle(action.id, resourceId)
         );
         break;
       case "execute":
-        this.apiRuntimeContext?.apiLogService.debug('[Http Express Delivery Service]', `Registering ${action.id} as POST ${resourceId}/${action.alias}`);
+        this.apiRuntimeContext?.apiLogService.debug(
+          `[${deliveryServiceName}]`,
+          `Registering ${action.id} as POST ${resourceId}/${action.alias}`
+        );
         this.expressApp?.post(
           `${resourceId}/${action.alias}`,
           this.getResponseHandle(action.id, resourceId)
@@ -170,7 +201,10 @@ export class ExpressActionDeliveryService implements ApiDeliveryService {
   ): (req: Request, res: Response) => Promise<void> {
     return async (req: Request, res: Response) => {
       try {
-        this.apiRuntimeContext?.apiLogService.debug('[Http Express Delivery Service]', `Request arrive ${req.method} ${req.path}`);
+        this.apiRuntimeContext?.apiLogService.debug(
+          `[${deliveryServiceName}]`,
+          `Request arrive ${req.method} ${req.path}`
+        );
 
         let resourceWithValue = undefined;
 

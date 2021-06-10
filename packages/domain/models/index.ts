@@ -10,3 +10,4 @@ export * from "./api-response";
 export * from "./api-response-status";
 export * from "./api-routine";
 export * from "./api-runtime-context";
+export * from "./api-delivery-service-info";
