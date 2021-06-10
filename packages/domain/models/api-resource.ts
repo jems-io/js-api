@@ -5,7 +5,7 @@ export interface ApiResource {
   alias: string;
   name: string;
   description?: string;
-  actions: ApiResourceAction[];
+  actions?: ApiResourceAction[];
   middlewares?: ApiMiddleware[];
   resources?: ApiResource[];
 }

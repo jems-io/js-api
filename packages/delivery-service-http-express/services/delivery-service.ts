@@ -23,7 +23,6 @@ export class ExpressActionDeliveryService
   private expressApp?: core.Express;
   private apiRuntimeContext?: ApiRuntimeContext;
   private httpTerminator?: HttpTerminator;
-  private hasActions = false;
   private mapActions: { [actionPathAlias: string]: string } = {};
   private parameters?: { [param: string]: any };
 
@@ -41,15 +40,11 @@ export class ExpressActionDeliveryService
     this.expressApp = express();
     this.expressApp.use(express.json());
     this.expressApp.use(cors())
-    this.hasActions = false;
     this.parameters = parameters;
     this.mapActions = {};
     apiRuntimeContext.api.resources.forEach((resource) => {
       this.startResource(resource);
     });
-    if (!this.hasActions) {
-      throw Error("Should have a least one action");
-    }
     const server = await this.expressApp?.listen(
       parameters?.port || defaultValues.port
     );
@@ -112,7 +107,6 @@ export class ExpressActionDeliveryService
     }
 
     this.mapActions[action.id] = action.id;
-    this.hasActions = true;
     const paramActionId = `:${this.toCamelCase(resourceName)}Id`;
     const suffix = useActionAliasOnPath ? `/${action.alias}` : "";
     const currentPath = `${resourceBasePath}${suffix}`;

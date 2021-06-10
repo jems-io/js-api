@@ -86,10 +86,10 @@ export class BuiltInApiRuntimeService implements ApiRuntimeService {
     return {
       name: apiResource.name,
       alias: apiResource.alias,
-      actions: apiResource.actions.map((action: ApiResourceAction) => ({
+      actions: apiResource.actions?.map((action: ApiResourceAction) => ({
         ...action,
         id: `${currentPath}/${action.alias}`,
-      })),
+      })) ?? [],
       resources:
         apiResource.resources?.map((resource: ApiResource) =>
           this.toApiResourceProtected(resource, currentPath)
