@@ -1,0 +1,16 @@
+{
+  "name": "@jems/api-sandbox",
+  "version": "0.0.1",
+  "main": "dist/index.js",
+  "repository": "https://github.com/jems-io/api",
+  "author": "Francisco Mercedes <franciscomerdot@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc index.ts --outDir dist --declaration"
+  },
+  "dependencies": {
+    "@jems/api-domain": "0.3.0",
+    "@jems/api-core": "0.3.0",
+    "@jems/api-delivery-http-express": "0.3.0"
+  }
+}
