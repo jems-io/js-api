@@ -1,6 +1,7 @@
 import {
   Api,
   ApiDeliveryService,
+  ApiLogService,
   ApiProtected,
   ApiResource,
   ApiResourceAction,
@@ -9,6 +10,7 @@ import {
   ApiRuntimeService,
 } from "@jems/api-domain";
 import * as uuid from "uuid";
+import { BuiltInLogService } from "./built-in-api-log-service";
 import { BuiltInApiResourceActionPipelineService } from "./built-in-resource-action-pipeline-service";
 
 interface ApiDeliveryServiceWithParametersMap {
@@ -18,8 +20,16 @@ interface ApiDeliveryServiceWithParametersMap {
   };
 }
 
+export interface BuiltInApiRuntimeServiceConfiguration {
+  apiLogService?: ApiLogService;
+}
+
 export class BuiltInApiRuntimeService implements ApiRuntimeService {
   private actionDeliveryService: ApiDeliveryServiceWithParametersMap = {};
+
+  constructor(
+    private configuration: BuiltInApiRuntimeServiceConfiguration = {}
+  ) {}
 
   registerDeliveryService(
     api: ApiDeliveryService,
@@ -62,6 +72,8 @@ export class BuiltInApiRuntimeService implements ApiRuntimeService {
         new BuiltInApiResourceActionPipelineService({
           ...api,
         }),
+      apiLogService:
+        this.configuration.apiLogService ?? new BuiltInLogService(),
     };
   }
 
@@ -86,10 +98,11 @@ export class BuiltInApiRuntimeService implements ApiRuntimeService {
     return {
       name: apiResource.name,
       alias: apiResource.alias,
-      actions: apiResource.actions?.map((action: ApiResourceAction) => ({
-        ...action,
-        id: `${currentPath}/${action.alias}`,
-      })) ?? [],
+      actions:
+        apiResource.actions?.map((action: ApiResourceAction) => ({
+          ...action,
+          id: `${currentPath}/${action.alias}`,
+        })) ?? [],
       resources:
         apiResource.resources?.map((resource: ApiResource) =>
           this.toApiResourceProtected(resource, currentPath)
