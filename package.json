@@ -12,7 +12,7 @@
   "scripts": {
     "test": "jest --coverage",
     "sandbox:build": "(cd packages/domain && yarn build) & (cd packages/core && yarn build) & (cd packages/delivery-service-http-express && yarn build)",
-    "sandbox:start": "yarn sandbox:build && ts-node packages/sandbox"
+    "sandbox:start": "ts-node packages/sandbox"
   },
   "devDependencies": {
     "@types/jest": "^26.0.10",
