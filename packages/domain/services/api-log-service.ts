@@ -3,4 +3,5 @@ export interface ApiLogService {
     logInfo(...message: any[]): void
     logWarn(...message: any[]): void
     logError(...message: any[]): void
+    debug(...message: any[]): void
 }
