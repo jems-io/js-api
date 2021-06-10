@@ -1,5 +1,5 @@
 import {
-    BuiltInApiRuntimeService
+    createApiRuntime
 } from "@jems/api-core";
 import { ExpressActionDeliveryService } from "@jems/api-delivery-http-express";
 import { Api } from "@jems/api-domain";
@@ -16,7 +16,7 @@ const api: Api = {
   ],
 };
 
-const builtInApiRuntimeService = new BuiltInApiRuntimeService();
+const builtInApiRuntimeService = createApiRuntime();
 
 (async function start() {
   await builtInApiRuntimeService.registerDeliveryService(
