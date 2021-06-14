@@ -22,7 +22,7 @@ const defaultValues = {
   port: 80,
 };
 
-export class ExpressActionDeliveryService implements ApiDeliveryService {
+export class HttpExpressDeliveryService implements ApiDeliveryService {
   private expressApp?: core.Express;
   private apiRuntimeContext?: ApiRuntimeContext;
   private httpTerminator?: HttpTerminator;

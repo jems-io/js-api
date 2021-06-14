@@ -1,87 +1,110 @@
-import {
-  createApiResponseBuildService,
-  createApiRuntime,
-} from "@jems/api-core";
-import { ExpressActionDeliveryService } from "@jems/api-delivery-http-express";
-import { Api } from "@jems/api-domain";
+  import {
+    createApiResponseBuildService,
+    createApiRuntime,
+  } from "@jems/api-core";
+  import { HttpExpressDeliveryService } from "@jems/api-delivery-http-express";
+  import { Api } from "@jems/api-domain";
 
-const apiResponseBuildService = createApiResponseBuildService();
-const api: Api = {
-  name: "Sanbox Api",
-  version: "1.0",
-  resources: [
-    {
-      alias: "users",
-      name: "Users",
-      actions: [
-        {
-          type: "query",
-          name: "Query Users",
-          routine: (req) => apiResponseBuildService.buildJsonResponse(req),
-        },
-        {
-          type: "get",
-          name: "Get User",
-          routine: (req) =>
-            apiResponseBuildService.buildJsonResponse(
-              { message: "Resource Not Found" },
-              "resourceNotFound"
-            ),
-        },
-        {
-          type: "get",
-          alias: "default2",
-          name: "Get Users",
-          routine: (req) =>
-            apiResponseBuildService.buildJsonResponse(
-              { message: "Resource Not Found 2" },
-              "resourceNotFound"
-            ),
-        },
-      ],
-    },
-    {
-      alias: "friends",
-      name: "Friends",
-      actions: [
-        {
-          type: "query",
-          name: "Query Friends",
-          routine: (req) => apiResponseBuildService.buildJsonResponse(req),
-        },
-        {
-          type: "get",
-          name: "Get Friend",
-          routine: (req) => {
-            return apiResponseBuildService.buildJsonResponse(
-              { message: "Resource Not Found" },
-              "resourceNotFound"
-            );
+  interface UserStatus {
+    id: number;
+    name: string;
+  }
+  interface User {
+    id: number;
+    name: string;
+    statusId: number;
+  }
+
+  const userStatuses: UserStatus[] = [
+    { id: 0, name: "active" },
+    { id: 0, name: "master" },
+    { id: 0, name: "deactive" },
+  ];
+
+  const users: User[] = [
+    { id: 1, name: "User abcd 1", statusId: 0 },
+    { id: 2, name: "User cdef 2", statusId: 0 },
+    { id: 3, name: "User edgh 3", statusId: 1 },
+    { id: 4, name: "User ghij 4", statusId: 0 },
+  ];
+
+  const apiResponseBuildService = createApiResponseBuildService();
+  const exampleApi: Api = {
+    name: "Example API",
+    version: "0.0.1",
+    resources: [
+      {
+        alias: "users",
+        name: "Users",
+        actions: [
+          {
+            type: "query",
+            name: "Query Users",
+            routine: (req) => {
+              const filteredUser = req.parameters.name
+                ? users.filter((u) => u.name.includes(req.parameters.name))
+                : users;
+              return apiResponseBuildService.buildJsonResponse(filteredUser);
+            },
           },
-        },
-        {
-          type: "get",
-          alias: "default2",
-          name: "Get Friends",
-          routine: (req) =>
-            apiResponseBuildService.buildJsonResponse(
-              { message: "Resource Not Found 2" },
-              "resourceNotFound"
-            ),
-        },
-      ],
-    },
-  ],
-};
+          {
+            type: "query",
+            alias: "master",
+            name: "Query Master User",
+            routine: (req) => {
+              const foundUser = users.find(
+                (u) => u.statusId === 1 // 1=Master
+              );
 
-const builtInApiRuntimeService = createApiRuntime();
+              return foundUser
+                ? apiResponseBuildService.buildJsonResponse(foundUser)
+                : apiResponseBuildService.buildJsonResponse(
+                    { message: "User Not Found" },
+                    "resourceNotFound"
+                  );
+            },
+          },
+          {
+            type: "get",
+            name: "Get User",
+            routine: (req) => {
+              const foundUser = users.find(
+                (u) => u.id === parseInt(req.parameters.userId)
+              );
 
-(async function start() {
-  await builtInApiRuntimeService.registerDeliveryService(
-    new ExpressActionDeliveryService(),
-    {
-      port: "8080",
-    }
-  );
-  await builtInApiRuntimeService.execute(api);
-})();
+              return foundUser
+                ? apiResponseBuildService.buildJsonResponse(foundUser)
+                : apiResponseBuildService.buildJsonResponse(
+                    { message: "User Not Found" },
+                    "resourceNotFound"
+                  );
+            },
+          },
+        ],
+      },
+      {
+        alias: "statuses",
+        name: "User Statuses",
+        actions: [
+          {
+            type: "query",
+            name: "Query User Statuses",
+            routine: (req) =>
+              apiResponseBuildService.buildJsonResponse(userStatuses),
+          },
+        ],
+      },
+    ],
+  };
+
+  const builtInApiRuntimeService = createApiRuntime();
+
+  (async function start() {
+    await builtInApiRuntimeService.registerDeliveryService(
+      new HttpExpressDeliveryService(),
+      {
+        port: "8080",
+      }
+    );
+    await builtInApiRuntimeService.execute(exampleApi);
+  })();

@@ -11,6 +11,6 @@
   "dependencies": {
     "@jems/api-domain": "0.3.0",
     "@jems/api-core": "0.3.0",
-    "@jems/api-delivery-http-express": "0.3.0"
+    "@jems/api-delivery-http-express": "0.3.1"
   }
 }
