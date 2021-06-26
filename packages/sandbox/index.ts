@@ -1,17 +1,18 @@
-
- /**
-  * Import the needed dependencies.
-  */
+/**
+ * Import the needed dependencies.
+ */
 import {
   createApiResponseBuildService,
   createApiRuntime,
+  createConsoleApiLogService,
+  LogLevel,
 } from "@jems/api-core";
 import { HttpExpressDeliveryService } from "@jems/api-delivery-http-express";
 import { Api } from "@jems/api-domain";
 
- /**
-  * Mock some data to use it in the API.
-  */
+/**
+ * Mock some data to use it in the API.
+ */
 interface UserStatus {
   id: number;
   name: string;
@@ -36,13 +37,13 @@ const users: User[] = [
   { id: 4, name: "User ghij 4", statusId: 0 },
 ];
 
- /**
-  * Create an api response build service which will simplify the way to create 
-  * responses in the API reosuces actions.
-  */
+/**
+ * Create an api response build service which will simplify the way to create
+ * responses in the API reosuces actions.
+ */
 const apiResponseBuildService = createApiResponseBuildService();
 
- /**
+/**
   *Start declaring the API by giving it a name and a version. Using the `Api` type
   we import from the domain will help to easily declare the API with an IDE IntelliSense.
   */
@@ -60,11 +61,11 @@ const exampleApi: Api = {
         /**
          * Add actions to the resource. The actions must contain a type, name and routine
          * which is the code that will run when the action is executed.
-         * 
+         *
          * Optional you can add an alias to the actio, deliveri services will use the alias differently.
-         * 
+         *
          * Types: get | create | update | delete | patch | query | execute
-         * 
+         *
          * No actions with the same type and alias can exists in a single resource.
          */
         {
@@ -110,6 +111,31 @@ const exampleApi: Api = {
                 );
           },
         },
+        {
+          type: "create",
+          name: "Create Users",
+          routine: (req) => {
+            // TODO: Create the user
+            return apiResponseBuildService.buildJsonResponse({ status: "ok" });
+          },
+        },
+        {
+          type: "update",
+          name: "Update Users",
+          routine: (req) => {
+            // TODO: Update the user
+            return apiResponseBuildService.buildJsonResponse({ status: "ok" });
+          },
+        },
+        {
+          type: "execute",
+          alias: "deactivate",
+          name: "Deactivate Users",
+          routine: (req) => {
+            // TODO: Update the user
+            return apiResponseBuildService.buildJsonResponse({ status: "ok" });
+          },
+        },
       ],
     },
     {
@@ -130,7 +156,9 @@ const exampleApi: Api = {
 /**
  * Creati an api runtime service to execute your delcared api.
  */
-const builtInApiRuntimeService = createApiRuntime();
+const builtInApiRuntimeService = createApiRuntime({
+  logService: createConsoleApiLogService({ level: LogLevel.info }),
+});
 
 async function start() {
   /**
@@ -144,9 +172,9 @@ async function start() {
   );
 
   /**
-   * Execute your declared api. 
+   * Execute your declared api.
    */
   await builtInApiRuntimeService.execute(exampleApi);
 }
 
-start()
+start();
