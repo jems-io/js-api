@@ -14,6 +14,7 @@ import { singularize } from "../utilities";
 import { createHttpTerminator, HttpTerminator } from "http-terminator";
 import * as core from "express-serve-static-core";
 import cors from "cors";
+import { Server } from "http";
 
 const deliveryServiceName = "Http Express Delivery Service";
 const deliveryServiceDescription =
@@ -26,7 +27,7 @@ export class HttpExpressDeliveryService implements ApiDeliveryService {
   private expressApp?: core.Express;
   private apiRuntimeContext?: ApiRuntimeContext;
   private httpTerminator?: HttpTerminator;
-  private mapActions: { [actionPathAlias: string]: boolean } = {};
+  private actionsExistanceMap: { [actionId: string]: boolean } = {};
   private parameters?: { [param: string]: any };
 
   async getInfo(): Promise<ApiDeliveryServiceInfo> {
@@ -52,13 +53,30 @@ export class HttpExpressDeliveryService implements ApiDeliveryService {
     this.expressApp.use(express.json());
     this.expressApp.use(cors());
     this.parameters = parameters;
-    this.mapActions = {};
+    this.actionsExistanceMap = {};
     apiRuntimeContext.api.resources.forEach((resource) => {
       this.startResource(resource);
     });
-    const server = await this.expressApp?.listen(
-      parameters?.port || defaultValues.port
-    );
+
+    const port = parameters?.port || defaultValues.port;
+    const server = await new Promise<Server>((resolve, reject) => {
+      try {
+        const inPromiseServer = this.expressApp?.listen(port, () => {
+          if (inPromiseServer) {
+            resolve(inPromiseServer);
+            this.apiRuntimeContext?.apiLogService.logInfo(
+              `[${deliveryServiceName}]`,
+              `Start listening on port ${port}`
+            );
+          } else {
+            reject(new Error("Express http server could not be built."));
+          }
+        });
+      } catch (error) {
+        reject(error);
+      }
+    });
+
     this.httpTerminator = createHttpTerminator({ server });
     return Promise.resolve();
   }
@@ -75,121 +93,119 @@ export class HttpExpressDeliveryService implements ApiDeliveryService {
 
   private startResource(
     resource: ApiResourceProtected,
-    previousResourcePath: string = ""
+    previousResourceParameteredPath: string = ""
   ) {
     const resourceName = singularize(resource.alias);
-    const resourceBasePath = `${previousResourcePath}/${resource.alias}`;
-    const resourcePath = `${resourceBasePath}/:${resourceName}Id`;
-    const actionTypeCount = resource.actions.reduce(
-      (map: { [type: string]: number }, action) => {
-        if (!map[action.type]) {
-          map[action.type] = 0;
-        }
-        map[action.type] = map[action.type] + 1;
-        return map;
-      },
-      {}
-    );
+    const resourceBasePath = `${previousResourceParameteredPath}/${resource.alias}`;
+    const actionParamPlaceholder = `:${this.toCamelCase(resourceName)}Id`;
+    const resourceParameteredPath = `${resourceBasePath}/${actionParamPlaceholder}`;
+
     resource.actions.forEach((action) => {
       this.startAction(
         action,
         resourceBasePath,
-        previousResourcePath,
-        resourceName
+        resourceParameteredPath,
+        previousResourceParameteredPath
       );
     });
     resource.resources?.forEach((res) => {
-      this.startResource(res, resourcePath);
+      this.startResource(res, resourceParameteredPath);
     });
   }
 
   private startAction(
     action: ApiResourceActionProtected,
     resourceBasePath: string,
-    previousResourcePath: string,
-    resourceName: string
+    resourceParameteredPath: string,
+    previousResourceParameteredPath: string
   ) {
-    if (this.mapActions[action.id]) {
+    if (this.actionsExistanceMap[action.id]) {
       throw Error(
         `Two actions cannot have the same type and alias on the same resource, action:${action.id}`
       );
     }
 
-    this.mapActions[action.id] = true;
-    const paramActionId = `:${this.toCamelCase(resourceName)}Id`;
-    const suffix = action.alias ? `/${action.alias}` : "";
-    const currentPath = `${resourceBasePath}${suffix}`;
-    let resourceId = `${resourceBasePath}/${paramActionId}${suffix}`;
+    if (action.type === "execute" && !action.alias) {
+      throw Error(
+        `Action of type execution must contain an alias, action name ${action.name}`
+      );
+    }
+
+    this.actionsExistanceMap[action.id] = true;
+    const aliasSuffix = action.alias ? `/${action.alias}` : "";
+
+    const withAliasResourceBasePath = `${resourceBasePath}${aliasSuffix}`;
+    const withAliasResourceParameteredPath = `${resourceParameteredPath}${aliasSuffix}`;
 
     switch (action.type) {
       case "query":
         this.apiRuntimeContext?.apiLogService.debug(
           `[${deliveryServiceName}]`,
-          `Registering ${action.id} as GET ${currentPath}`
+          `Registering ${action.id} as GET ${withAliasResourceBasePath}`
         );
         this.expressApp?.get(
-          currentPath,
-          this.getResponseHandle(action.id, previousResourcePath)
+          withAliasResourceBasePath,
+          this.getResponseHandle(action.id, previousResourceParameteredPath)
         );
         break;
       case "get":
         this.apiRuntimeContext?.apiLogService.debug(
           `[${deliveryServiceName}]`,
-          `Registering ${action.id} as GET ${resourceId}`
+          `Registering ${action.id} as GET ${withAliasResourceParameteredPath}`
         );
         this.expressApp?.get(
-          resourceId,
-          this.getResponseHandle(action.id, resourceId)
+          withAliasResourceParameteredPath,
+          this.getResponseHandle(action.id, resourceParameteredPath)
         );
         break;
       case "create":
         this.apiRuntimeContext?.apiLogService.debug(
           `[${deliveryServiceName}]`,
-          `Registering ${action.id} as POST ${currentPath}`
+          `Registering ${action.id} as POST ${withAliasResourceBasePath}`
         );
         this.expressApp?.post(
-          currentPath,
-          this.getResponseHandle(action.id, previousResourcePath)
+          withAliasResourceBasePath,
+          this.getResponseHandle(action.id, previousResourceParameteredPath)
         );
         break;
       case "update":
         this.apiRuntimeContext?.apiLogService.debug(
           `[${deliveryServiceName}]`,
-          `Registering ${action.id} as PUT ${resourceId}`
+          `Registering ${action.id} as PUT ${withAliasResourceParameteredPath}`
         );
         this.expressApp?.put(
-          resourceId,
-          this.getResponseHandle(action.id, resourceId)
+          withAliasResourceParameteredPath,
+          this.getResponseHandle(action.id, resourceParameteredPath)
         );
         break;
       case "delete":
         this.apiRuntimeContext?.apiLogService.debug(
           `[${deliveryServiceName}]`,
-          `Registering ${action.id} as DELETE ${resourceId}`
+          `Registering ${action.id} as DELETE ${withAliasResourceParameteredPath}`
         );
         this.expressApp?.delete(
-          resourceId,
-          this.getResponseHandle(action.id, resourceId)
+          withAliasResourceParameteredPath,
+          this.getResponseHandle(action.id, resourceParameteredPath)
         );
         break;
       case "patch":
         this.apiRuntimeContext?.apiLogService.debug(
           `[${deliveryServiceName}]`,
-          `Registering ${action.id} as PATCH ${resourceId}`
+          `Registering ${action.id} as PATCH ${withAliasResourceParameteredPath}`
         );
         this.expressApp?.patch(
-          resourceId,
-          this.getResponseHandle(action.id, resourceId)
+          withAliasResourceParameteredPath,
+          this.getResponseHandle(action.id, resourceParameteredPath)
         );
         break;
       case "execute":
         this.apiRuntimeContext?.apiLogService.debug(
           `[${deliveryServiceName}]`,
-          `Registering ${action.id} as POST ${resourceId}/${action.alias}`
+          `Registering ${action.id} as POST ${withAliasResourceParameteredPath}`
         );
         this.expressApp?.post(
-          `${resourceId}/${action.alias}`,
-          this.getResponseHandle(action.id, resourceId)
+          withAliasResourceParameteredPath,
+          this.getResponseHandle(action.id, resourceParameteredPath)
         );
         break;
     }
@@ -280,7 +296,7 @@ export class HttpExpressDeliveryService implements ApiDeliveryService {
     return {
       id: uuid.v4(),
       actionId,
-      resourceId: resourceId || "",
+      resourceId: resourceId,
       metadata: {
         ...req.headers,
       } as any,
