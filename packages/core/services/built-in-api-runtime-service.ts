@@ -10,8 +10,12 @@ import {
   ApiRuntimeService,
 } from "@jems/api-domain";
 import * as uuid from "uuid";
-import { BuiltInLogService } from "./built-in-api-log-service";
 import { BuiltInApiResourceActionPipelineService } from "./built-in-resource-action-pipeline-service";
+import { NoOpLogService } from "./no-op-api-log-service";
+
+const DEFAULT_CONFIGURATION: BuiltInApiRuntimeServiceConfiguration = {
+  logService: new NoOpLogService(),
+};
 
 interface ApiDeliveryServiceWithParametersMap {
   [id: string]: {
@@ -21,18 +25,21 @@ interface ApiDeliveryServiceWithParametersMap {
 }
 
 export interface BuiltInApiRuntimeServiceConfiguration {
-  debug: boolean;
   logService: ApiLogService;
 }
 
 export class BuiltInApiRuntimeService implements ApiRuntimeService {
-  private actionDeliveryService: ApiDeliveryServiceWithParametersMap = {};
-  private logService: ApiLogService;
-
+  private readonly actionDeliveryService: ApiDeliveryServiceWithParametersMap;
+  private readonly configuration: BuiltInApiRuntimeServiceConfiguration;
   constructor(
-    private configuration: Partial<BuiltInApiRuntimeServiceConfiguration> = {}
+    configuration: Partial<BuiltInApiRuntimeServiceConfiguration> = {}
   ) {
-    this.logService = this.configuration.logService ?? new BuiltInLogService();
+    this.actionDeliveryService = {};
+    this.configuration = Object.assign(
+      {},
+      DEFAULT_CONFIGURATION,
+      configuration
+    );
   }
 
   registerDeliveryService(
@@ -57,13 +64,13 @@ export class BuiltInApiRuntimeService implements ApiRuntimeService {
       throw Error("Api definition is not valid.");
     }
 
-    this.logService.logInfo(`Starting api`);
+    this.configuration.logService?.logInfo(`Starting api`);
 
     const registeredDelivryServicesKeys = Object.keys(
       this.actionDeliveryService
     );
 
-    this.logService.debug(
+    this.configuration.logService?.debug(
       `Delivery services found: ${registeredDelivryServicesKeys.length}`
     );
 
@@ -72,9 +79,10 @@ export class BuiltInApiRuntimeService implements ApiRuntimeService {
     await Promise.all([
       ...registeredDelivryServicesKeys.map(async (key) => {
         const deliveryService = this.actionDeliveryService[key];
-        const deliveryServiceInfo = await deliveryService.actionDeliveryService.getInfo()
+        const deliveryServiceInfo =
+          await deliveryService.actionDeliveryService.getInfo();
 
-        this.logService.debug(
+        this.configuration.logService?.debug(
           `Starting delivery service: ${deliveryServiceInfo.name}`
         );
 
@@ -83,13 +91,13 @@ export class BuiltInApiRuntimeService implements ApiRuntimeService {
           deliveryService.parameters
         );
 
-        this.logService.debug(
+        this.configuration.logService?.debug(
           `Finished starting delivery service: ${deliveryServiceInfo.name}`
         );
       }),
     ]);
 
-    this.logService.logInfo(`Finished starting api`);
+    this.configuration.logService?.logInfo(`Finished starting api`);
   }
 
   private getApiRuntimeContext(api: Api): ApiRuntimeContext {
@@ -98,11 +106,11 @@ export class BuiltInApiRuntimeService implements ApiRuntimeService {
       apiResourceActionPipelineService:
         new BuiltInApiResourceActionPipelineService(
           {
-            ...api
+            ...api,
           },
-          this.logService
+          this.configuration.logService
         ),
-      apiLogService: this.logService,
+      apiLogService: this.configuration.logService,
     };
   }
 
@@ -124,7 +132,7 @@ export class BuiltInApiRuntimeService implements ApiRuntimeService {
       path += "/";
     }
     const currentPath = `${path}${apiResource.alias}`;
-    this.logService.debug(
+    this.configuration.logService?.debug(
       `Found resource ${apiResource.name} · ${currentPath}`
     );
     return {
@@ -132,9 +140,9 @@ export class BuiltInApiRuntimeService implements ApiRuntimeService {
       alias: apiResource.alias,
       actions:
         apiResource.actions?.map((action: ApiResourceAction) => {
-          const actionIdSuffix = action.alias ? `/${action.alias}` : ''
+          const actionIdSuffix = action.alias ? `/${action.alias}` : "";
           const actionId = `${action.type}:${currentPath}${actionIdSuffix}`;
-          this.logService.debug(
+          this.configuration.logService?.debug(
             `Found resource action ${action.name} · ${actionId}`
           );
           return {
