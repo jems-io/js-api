@@ -229,6 +229,7 @@ Runtimes can register infinite number of delivery services meaning you can write
 # Roadmap
 
 - Add more documentation (Middlewares, Domain and its types, each delivery service and how they map the declared Api to its technology/protocol)
+- Make all validations regarding to resources and actions duplications and content happen on core, guaranty same sanitation and behavior across delivery services.
 - Debug tools (Errors, Environements, Stacktraces)
 - APIs consumable by direct referece
 - No-Op dependencies implementations in the core lib (ie. Console Logging should only hppen if is intended.)
