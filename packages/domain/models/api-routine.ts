@@ -1,19 +1,24 @@
 import { ApiRequest } from "./api-request";
 import { ApiResponse } from "./api-response";
 
-export type ApiRoutine = ApiRoutineSync | ApiRoutineAsync;
-export type ApiRoutineSync = (request: ApiRequest) => ApiResponse;
-export type ApiRoutineAsync = (request: ApiRequest) => Promise<ApiResponse>;
-
-export type ApiMiddlewareRoutine =
-  | ApiMiddlewareRoutineSync
-  | ApiMiddlewareRoutineAsync;
-export type ApiMiddlewareRoutineSync = (
-  request: ApiRequest,
-  invokeNextRoutine: ApiRoutine
+export type ApiRoutine<RoutineContextType = any> =
+  | ApiRoutineSync<RoutineContextType>
+  | ApiRoutineAsync<RoutineContextType>;
+export type ApiRoutineSync<RoutineContextType = any> = (
+  request: ApiRequest<RoutineContextType>
 ) => ApiResponse;
-export type ApiMiddlewareRoutineAsync = (
-  request: ApiRequest,
-  invokeNextRoutine: ApiRoutine
+export type ApiRoutineAsync<RoutineContextType = any> = (
+  request: ApiRequest<RoutineContextType>
 ) => Promise<ApiResponse>;
-``;
+
+export type ApiMiddlewareRoutine<RoutineContextType = any> =
+  | ApiMiddlewareRoutineSync<RoutineContextType>
+  | ApiMiddlewareRoutineAsync<RoutineContextType>;
+export type ApiMiddlewareRoutineSync<RoutineContextType = any> = (
+  request: ApiRequest,
+  invokeNextRoutine: ApiRoutine<RoutineContextType>
+) => ApiResponse;
+export type ApiMiddlewareRoutineAsync<RoutineContextType = any> = (
+  request: ApiRequest,
+  invokeNextRoutine: ApiRoutine<RoutineContextType>
+) => Promise<ApiResponse>;
