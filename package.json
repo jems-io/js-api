@@ -11,7 +11,7 @@
   "license": "MIT",
   "scripts": {
     "test": "jest --coverage",
-    "sandbox:build": "(cd packages/domain && yarn build) & (cd packages/core && yarn build) & (cd packages/delivery-service-http-express && yarn build)",
+    "sandbox:build": "(cd packages/domain && yarn build) && (cd packages/core && yarn build) && (cd packages/delivery-service-http-express && yarn build)",
     "sandbox:start": "ts-node packages/sandbox"
   },
   "devDependencies": {

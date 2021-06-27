@@ -1,6 +1,5 @@
 {
   "name": "@jems/api-sandbox",
-  "version": "0.0.1",
   "main": "dist/index.js",
   "repository": "https://github.com/jems-io/api",
   "author": "Francisco Mercedes <franciscomerdot@gmail.com>",

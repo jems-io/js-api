@@ -8,7 +8,7 @@ import {
   LogLevel,
 } from "@jems/api-core";
 import { HttpExpressDeliveryService } from "@jems/api-delivery-http-express";
-import { Api } from "@jems/api-domain";
+import { Api, ApiRequest } from "@jems/api-domain";
 
 /**
  * Mock some data to use it in the API.
@@ -37,6 +37,14 @@ const users: User[] = [
   { id: 4, name: "User ghij 4", statusId: 0 },
 ];
 
+interface SanboxApiContext {
+  log(message: any): void;
+}
+
+interface SanboxApiContextV2 extends SanboxApiContext {
+  logV2(message: any): void;
+}
+
 /**
  * Create an api response build service which will simplify the way to create
  * responses in the API reosuces actions.
@@ -47,7 +55,7 @@ const apiResponseBuildService = createApiResponseBuildService();
   *Start declaring the API by giving it a name and a version. Using the `Api` type
   we import from the domain will help to easily declare the API with an IDE IntelliSense.
   */
-const exampleApi: Api = {
+const exampleApi: Api<SanboxApiContext> = {
   name: "Example API",
   version: "0.0.1",
   resources: [
@@ -71,7 +79,10 @@ const exampleApi: Api = {
         {
           type: "query",
           name: "Query Users",
-          routine: (req) => {
+          routine: (req: ApiRequest<SanboxApiContextV2>) => {
+            req.context?.log && req.context?.log("...")
+            req.context?.logV2 && req.context?.logV2("...v2")
+
             const filteredUser = req.parameters.name
               ? users.filter((u) => u.name.includes(req.parameters.name))
               : users;
