@@ -102,7 +102,7 @@ export class BuiltInApiResourceActionPipelineService
         return toReturnComponents;
       },
       {
-        middlewares: this.api.middlewares ?? [],
+        middlewares: this.api.middlewares ? [...this.api.middlewares] : []
       }
     );
   }
