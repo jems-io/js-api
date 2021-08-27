@@ -50,7 +50,7 @@ export class HttpExpressDeliveryService implements ApiDeliveryService {
     }
 
     this.expressApp = express();
-    this.expressApp.use(express.json());
+    this.expressApp.use(express.raw({ type: '*/*' }));
     this.expressApp.use(cors());
     this.parameters = parameters;
     this.actionsExistanceMap = {};
@@ -300,8 +300,8 @@ export class HttpExpressDeliveryService implements ApiDeliveryService {
       metadata: {
         ...req.headers,
       } as any,
-      parameters: { ...JSON.parse(JSON.stringify(req.query)), ...req.params },
-      payload: Buffer.from(JSON.stringify(req.body || {})),
+      parameters: { ...req.query as any, ...req.params },
+      payload: req.body instanceof Buffer ? req.body: Buffer.from(''),
       context: {},
     };
   }
