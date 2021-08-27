@@ -12,7 +12,7 @@
     "build": "tsc index.ts --outDir dist --declaration --esModuleInterop"
   },
   "dependencies": {
-    "@jems/api-domain": "0.3.0",
+    "@jems/api-domain": "0.3.2",
     "express": "4.17.1",
     "cors": "2.8.5",
     "uuid": "8.3.0",
