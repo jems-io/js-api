@@ -1,7 +1,7 @@
 import { ApiResource } from "./api-resource";
 import { ApiMiddleware } from "./api-middleware";
 
-export interface Api<ApiContextType = { [key: string]: any }> {
+export interface Api<ApiContextType extends { [key: string]: any } = { [key: string]: any }> {
   name: string;
   version: string;
   description?: string;

@@ -15,10 +15,10 @@ export type ApiMiddlewareRoutine<RoutineContextType = any> =
   | ApiMiddlewareRoutineSync<RoutineContextType>
   | ApiMiddlewareRoutineAsync<RoutineContextType>;
 export type ApiMiddlewareRoutineSync<RoutineContextType = any> = (
-  request: ApiRequest,
+  request: ApiRequest<RoutineContextType>,
   invokeNextRoutine: ApiRoutine<RoutineContextType>
 ) => ApiResponse;
 export type ApiMiddlewareRoutineAsync<RoutineContextType = any> = (
-  request: ApiRequest,
+  request: ApiRequest<RoutineContextType>,
   invokeNextRoutine: ApiRoutine<RoutineContextType>
 ) => Promise<ApiResponse>;
