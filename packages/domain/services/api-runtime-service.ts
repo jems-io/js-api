@@ -1,4 +1,4 @@
-import { Api } from "../models/api";
+import { Api, ApiContext } from "../models";
 import { ApiDeliveryService } from "./api-delivery-service";
 
 export interface ApiRuntimeService {
@@ -7,5 +7,5 @@ export interface ApiRuntimeService {
     parameters?: { [paramName: string]: string }
   ): Promise<string>;
   unregisterDeliveryService(registryId: string): Promise<void>;
-  execute<ContextType>(api: Api<ContextType>): Promise<void>;
+  execute(api: Api): Promise<void>;
 }

@@ -1,4 +1,6 @@
-export interface ApiRequest<RequestContextType extends { [key: string]: any } = { [key: string]: any }> {
+import { ApiContext } from "./api-context";
+
+export interface ApiRequest<RequestContextType extends ApiContext = ApiContext> {
   id: string;
   actionId: string;
   resourceId?: string;
