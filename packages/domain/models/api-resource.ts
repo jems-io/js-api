@@ -8,5 +8,5 @@ export interface ApiResource<ResourceContextType extends ApiContext = ApiContext
   description?: string;
   actions?: ApiResourceAction<ResourceContextType>[];
   middlewares?: ApiMiddleware<ResourceContextType>[];
-  resources?: ApiResource[];
+  resources?: ApiResource<ResourceContextType>[];
 }

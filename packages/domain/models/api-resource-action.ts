@@ -8,6 +8,6 @@ export interface ApiResourceAction<ActionContextType extends ApiContext = ApiCon
   name: string;
   alias?: string;
   description?: string;
-  middlewares?: ApiMiddleware[];
+  middlewares?: ApiMiddleware<ActionContextType>[];
   routine: ApiRoutine<ActionContextType>;
 }
