@@ -41,10 +41,6 @@ interface SanboxApiContext {
   log(message: any): void;
 }
 
-interface SanboxApiContextV2 extends SanboxApiContext {
-  logV2(message: any): void;
-}
-
 /**
  * Create an api response build service which will simplify the way to create
  * responses in the API reosuces actions.
@@ -58,6 +54,16 @@ const apiResponseBuildService = createApiResponseBuildService();
 const exampleApi: Api<SanboxApiContext> = {
   name: "Example API",
   version: "0.0.1",
+  middlewares: [
+    {
+      alias: 'context-setup',
+      name: "Context Setup",
+      routine: async (req, next) => {
+        req.context.log = (message) => console.log(message)
+        return next(req)
+      }
+    }
+  ],
   resources: [
     /**
      * Add a resource to the declared API. Give it an alias and a name.
@@ -79,9 +85,8 @@ const exampleApi: Api<SanboxApiContext> = {
         {
           type: "query",
           name: "Query Users",
-          routine: (req: ApiRequest<SanboxApiContextV2>) => {
-            req.context?.log && req.context?.log("...")
-            req.context?.logV2 && req.context?.logV2("...v2")
+          routine: (req: ApiRequest<SanboxApiContext>) => {
+            req.context.log("...")
 
             const filteredUser = req.parameters.name
               ? users.filter((u) => u.name.includes(req.parameters.name))
@@ -126,7 +131,8 @@ const exampleApi: Api<SanboxApiContext> = {
           type: "create",
           name: "Create Users",
           routine: (req) => {
-            // TODO: Create the user
+            console.log(req.payload)
+            console.log(JSON.parse(req.payload.toString()))
             return apiResponseBuildService.buildJsonResponse({ status: "ok" });
           },
         },
@@ -168,7 +174,7 @@ const exampleApi: Api<SanboxApiContext> = {
  * Creati an api runtime service to execute your delcared api.
  */
 const builtInApiRuntimeService = createApiRuntime({
-  logService: createConsoleApiLogService({ level: LogLevel.info }),
+  logService: createConsoleApiLogService({ level: LogLevel.debug }),
 });
 
 async function start() {
