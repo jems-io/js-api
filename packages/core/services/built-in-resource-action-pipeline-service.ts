@@ -7,19 +7,20 @@ import {
   ApiResourceAction,
   ApiResourceActionPipelineService,
   ApiResponse,
+  ApiContext as DomainApiContext
 } from "@jems/api-domain";
 
-interface ActionExecutionComponents {
-  middlewares: ApiMiddleware[];
-  resource?: ApiResource;
-  action?: ApiResourceAction;
+interface ActionExecutionComponents<ApiContext> {
+  middlewares: ApiMiddleware<ApiContext>[];
+  resource?: ApiResource<ApiContext>;
+  action?: ApiResourceAction<ApiContext>;
 }
-export class BuiltInApiResourceActionPipelineService
+export class BuiltInApiResourceActionPipelineService<ApiContext extends DomainApiContext = DomainApiContext>
   implements ApiResourceActionPipelineService
 {
-  constructor(private api: Api, private logService: ApiLogService) {}
+  constructor(private api: Api<ApiContext>, private logService: ApiLogService) {}
 
-  async pipe(actionId: string, request: ApiRequest): Promise<ApiResponse> {
+  async pipe(actionId: string, request: ApiRequest<ApiContext>): Promise<ApiResponse> {
     if (!this.api) {
       throw Error("Api must be defined");
     }
@@ -53,13 +54,13 @@ export class BuiltInApiResourceActionPipelineService
 
   private getActionExecutionComponents(
     actionId: string
-  ): ActionExecutionComponents {
+  ): ActionExecutionComponents<ApiContext> {
     const actionTypeAndPath = actionId.split(":");
     const actionType = actionTypeAndPath[0];
 
-    return actionTypeAndPath[1].split("/").reduce<ActionExecutionComponents>(
+    return actionTypeAndPath[1].split("/").reduce<ActionExecutionComponents<ApiContext>>(
       (components, actionSection, actionSectionIndex, actionSections) => {
-        let resources: ApiResource[];
+        let resources: ApiResource<ApiContext>[];
 
         if (actionSectionIndex === 0) {
           resources = this.api.resources;
@@ -67,7 +68,7 @@ export class BuiltInApiResourceActionPipelineService
           resources = components.resource?.resources ?? [];
         }
 
-        const toReturnComponents: ActionExecutionComponents = {
+        const toReturnComponents: ActionExecutionComponents<ApiContext> = {
           resource: components.resource,
           middlewares: components.middlewares,
         };
@@ -108,9 +109,9 @@ export class BuiltInApiResourceActionPipelineService
   }
 
   private getActionResponseWithMiddlewareChain(
-    request: ApiRequest,
-    action: ApiResourceAction,
-    middlewares: ApiMiddleware[],
+    request: ApiRequest<ApiContext>,
+    action: ApiResourceAction<ApiContext>,
+    middlewares: ApiMiddleware<ApiContext>[],
     middlewareIndex: number
   ): ApiResponse | Promise<ApiResponse> {
     return middlewares[middlewareIndex].routine(

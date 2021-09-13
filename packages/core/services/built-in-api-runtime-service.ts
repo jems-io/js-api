@@ -1,5 +1,6 @@
 import {
   Api,
+  ApiContext as DomainApiContext,
   ApiDeliveryService,
   ApiLogService,
   ApiProtected,
@@ -59,7 +60,7 @@ export class BuiltInApiRuntimeService implements ApiRuntimeService {
     delete this.actionDeliveryService[registryId];
   }
 
-  async execute(api: Api): Promise<void> {
+  async execute<ApiContext extends DomainApiContext = DomainApiContext>(api: Api<ApiContext>): Promise<void> {
     if (!api || typeof api !== "object") {
       throw Error("Api definition is not valid.");
     }
@@ -100,7 +101,7 @@ export class BuiltInApiRuntimeService implements ApiRuntimeService {
     this.configuration.logService?.logInfo(`Finished starting api`);
   }
 
-  private getApiRuntimeContext(api: Api): ApiRuntimeContext {
+  private getApiRuntimeContext<ApiContext extends DomainApiContext = DomainApiContext>(api: Api<ApiContext>): ApiRuntimeContext {
     return {
       api: this.toApiProtected({ ...api }),
       apiResourceActionPipelineService:
@@ -114,18 +115,18 @@ export class BuiltInApiRuntimeService implements ApiRuntimeService {
     };
   }
 
-  private toApiProtected(api: Api): ApiProtected {
+  private toApiProtected<ApiContext extends DomainApiContext = DomainApiContext>(api: Api<ApiContext>): ApiProtected {
     const { middlewares, ...apiProtectedValues } = api;
     return {
       ...apiProtectedValues,
-      resources: api.resources.map((resource: ApiResource) =>
+      resources: api.resources.map((resource) =>
         this.toApiResourceProtected(resource)
       ),
     };
   }
 
-  private toApiResourceProtected(
-    apiResource: ApiResource,
+  private toApiResourceProtected<ApiContext extends DomainApiContext = DomainApiContext>(
+    apiResource: ApiResource<ApiContext>,
     path: string = ""
   ): ApiResourceProtected {
     if (path !== "") {
@@ -139,7 +140,7 @@ export class BuiltInApiRuntimeService implements ApiRuntimeService {
       name: apiResource.name,
       alias: apiResource.alias,
       actions:
-        apiResource.actions?.map((action: ApiResourceAction) => {
+        apiResource.actions?.map((action) => {
           const actionIdSuffix = action.alias ? `/${action.alias}` : "";
           const actionId = `${action.type}:${currentPath}${actionIdSuffix}`;
           this.configuration.logService?.debug(
@@ -151,7 +152,7 @@ export class BuiltInApiRuntimeService implements ApiRuntimeService {
           };
         }) ?? [],
       resources:
-        apiResource.resources?.map((resource: ApiResource) =>
+        apiResource.resources?.map((resource) =>
           this.toApiResourceProtected(resource, currentPath)
         ) || [],
     };
