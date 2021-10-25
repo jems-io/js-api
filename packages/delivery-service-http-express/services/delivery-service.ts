@@ -1,20 +1,20 @@
 import {
+  ApiDeliveryService,
+  ApiDeliveryServiceInfo,
+  ApiPayloadType,
   ApiRequest,
   ApiResourceActionProtected,
   ApiResourceProtected,
   ApiResponseStatus,
   ApiRuntimeContext,
-  ApiPayloadType,
-  ApiDeliveryService,
-  ApiDeliveryServiceInfo,
 } from "@jems/api-domain";
+import cors from "cors";
 import express, { Request, Response } from "express";
+import * as core from "express-serve-static-core";
+import { Server } from "http";
+import { createHttpTerminator, HttpTerminator } from "http-terminator";
 import * as uuid from "uuid";
 import { singularize } from "../utilities";
-import { createHttpTerminator, HttpTerminator } from "http-terminator";
-import * as core from "express-serve-static-core";
-import cors from "cors";
-import { Server } from "http";
 
 const deliveryServiceName = "Http Express Delivery Service";
 const deliveryServiceDescription =
@@ -50,7 +50,7 @@ export class HttpExpressDeliveryService implements ApiDeliveryService {
     }
 
     this.expressApp = express();
-    this.expressApp.use(express.raw({ type: '*/*' }));
+    this.expressApp.use(express.raw({ type: "*/*" }));
     this.expressApp.use(cors());
     this.parameters = parameters;
     this.actionsExistanceMap = {};
@@ -249,7 +249,7 @@ export class HttpExpressDeliveryService implements ApiDeliveryService {
           res.contentType(this.toContentType(response.payloadType));
           res.status(this.toStatusCode(response.status)).send(response.payload);
         }
-      } catch (error) {
+      } catch (error: any) {
         res
           .status(this.mapErrorStatusCode(error))
           .send({ message: error.toString() });
@@ -293,17 +293,24 @@ export class HttpExpressDeliveryService implements ApiDeliveryService {
     actionId: string,
     resourceId?: string
   ): ApiRequest {
-    return {
+    const extractUrlParams = this.parameters?.extractUrlParams ?? true;
+    const apiRequest = {
       id: uuid.v4(),
       actionId,
       resourceId: resourceId,
       metadata: {
         ...req.headers,
       } as any,
-      parameters: { ...req.query as any, ...req.params },
-      payload: req.body instanceof Buffer ? req.body: Buffer.from(''),
+      parameters: { ...(req.query as any) },
+      payload: req.body instanceof Buffer ? req.body : Buffer.from(""),
       context: {},
     };
+
+    if (extractUrlParams) {
+      apiRequest.parameters = { ...apiRequest.parameters, ...req.params };
+    }
+
+    return apiRequest;
   }
 
   private toStatusCode(status: ApiResponseStatus): number {
