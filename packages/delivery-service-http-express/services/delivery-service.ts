@@ -77,6 +77,10 @@ export class HttpExpressDeliveryService implements ApiDeliveryService {
       }
     });
 
+    if (typeof parameters?.serverTimeout === "number") {
+      server.setTimeout(parameters.serverTimeout);
+    }
+
     this.httpTerminator = createHttpTerminator({ server });
     return Promise.resolve();
   }
